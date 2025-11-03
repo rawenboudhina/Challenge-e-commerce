@@ -1,9 +1,8 @@
-@use '../../variables' as *; 
+@use '../../variables' as *;
+
 // ============================================
 // HEADER - DESIGN PREMIUM & COHÉRENT
 // ============================================
-
-// —————————————— HEADER BASE ——————————————
 .header {
   position: fixed;
   top: 0;
@@ -28,44 +27,40 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 2rem;
+  gap: 1rem;
 }
 
-// —————————————— LOGO ——————————————
-.logo-link {
+.logo {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  text-decoration: none;
-  font-weight: 900;
-  font-size: 1.5rem;
-  color: white;
-  @include smooth-transition;
+  justify-content: center;
+  flex: 1;
 
-  &:hover {
-    transform: translateY(-2px);
-  }
+  .logo-link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    text-decoration: none;
+    font-weight: 900;
+    font-size: 1.5rem;
+    color: white;
+    @include smooth-transition;
 
-  .logo-icon {
-    font-size: 2rem;
-    background: linear-gradient(135deg, $color-primary, $color-primary-dark);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
+    &:hover {
+      transform: translateY(-2px);
+    }
 
-  .logo-text {
-    @include gradient-text;
-    letter-spacing: -1px;
+    .logo-icon {
+      @include gradient-text;
+      letter-spacing: -1px;
+      font-size: 1.5rem;
+    }
   }
 }
 
-// —————————————— SEARCH BAR ——————————————
-.search-bar {
-  flex: 1;
-  max-width: 500px;
+// —————————————— SEARCH BARS (DESKTOP & MOBILE) ——————————————
+.search-bar, .mobile-search {
   display: flex;
-  gap: 0;
   border-radius: 3rem;
   overflow: hidden;
   border: 2px solid rgba(59, 130, 246, 0.3);
@@ -83,8 +78,8 @@
     background: transparent;
     color: white;
     border: none;
-    font-size: 1rem;
     outline: none;
+    font-size: 1rem;
 
     &::placeholder {
       color: rgba(255, 255, 255, 0.6);
@@ -92,12 +87,12 @@
   }
 
   .search-btn {
-    padding: 0.875rem 1.5rem;
+    padding: 0.875rem 2rem 0.875rem 1.5rem; // Espace accru à droite pour l'icône
     background: linear-gradient(135deg, $color-primary, $color-primary-dark);
     color: white;
     border: none;
-    font-size: 1.1rem;
     cursor: pointer;
+    font-size: 1.1rem;
     @include smooth-transition;
 
     &:hover {
@@ -106,7 +101,18 @@
   }
 }
 
-// —————————————— NAV LINKS ——————————————
+.search-bar {
+  flex: 1;
+  max-width: 500px;
+}
+
+.mobile-search {
+  display: none; // Caché par défaut
+  width: 100%;
+  background: rgba(30, 41, 59, 0.6);
+}
+
+// —————————————— NAV LINKS & MENU ——————————————
 .nav-links {
   display: flex;
   align-items: center;
@@ -121,8 +127,7 @@
     border-radius: 1rem;
     @include smooth-transition;
 
-    &:hover,
-    &.active {
+    &:hover, &.active {
       color: white;
       background: rgba(59, 130, 246, 0.2);
       @include glass-effect(0.1);
@@ -168,8 +173,7 @@
     }
   }
 
-  .btn-logout,
-  .btn-login {
+  .btn-logout, .btn-login {
     padding: 0.5rem 1.25rem;
     border-radius: 2rem;
     font-weight: 700;
@@ -199,55 +203,73 @@
   }
 }
 
-// —————————————— MOBILE MENU ——————————————
 .mobile-menu-btn {
   display: none;
-  background: none;
-  border: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(59, 130, 246, 0.2);
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(59, 130, 246, 0.3);
   color: white;
-  font-size: 1.75rem;
-  cursor: pointer;
-  padding: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
-  @include glass-effect(0.1);
+  cursor: pointer;
   @include smooth-transition;
+  z-index: 1001;
+  flex-shrink: 0;
 
-  &:hover {
-    background: rgba(59, 130, 246, 0.3);
+  &:hover, &.active {
+    background: $color-primary;
     transform: scale(1.1);
+    box-shadow: 0 8px 24px rgba(59, 130, 246, 0.4);
+  }
+
+  .menu-icon {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
   }
 }
 
-// —————————————— CATEGORIES BAR ——————————————
+// —————————————— CATEGORIES BAR (DESKTOP) ——————————————
+// —————————————— CATEGORIES BAR (DESKTOP) ——————————————
 .categories-bar {
   background: rgba(15, 23, 42, 0.8);
   backdrop-filter: blur(10px);
-  padding: 0.75rem 0;
+  padding: 0.5rem 0; // ✅ Padding symétrique top/bottom pour espace égal au-dessus/en-dessous
   border-top: 1px solid rgba(59, 130, 246, 0.2);
+  margin-bottom: 0;
+  
+  // Si tu veux un espacement encore plus fin, utilise : padding: 0.25rem 0;
 }
 
 .categories-list {
   display: flex;
-  gap: 0.75rem;
+  align-items: center; // ✅ Centre verticalement les items dans la flexbox
+  gap: 0.5rem; // Gap réduit pour compacité
   overflow-x: auto;
-  padding: 0 0.5rem;
+  padding: 0 0.5rem; // ✅ Padding horizontal seulement (supprime le bottom pour symétrie)
   scrollbar-width: none;
-  &::-webkit-scrollbar { display: none; }
-
+  
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  
   .category-item {
-    padding: 0.5rem 1.25rem;
-    background: rgba(30, 41, 59, 0.6);
+    padding: 0.5rem 1.25rem; // Garde le padding interne des items tel quel (ils s'aligneront automatiquement)
+    border: 2px solid rgba(59, 130, 246, 0.3);
     color: $color-text-light;
     text-decoration: none;
-    border-radius: 2rem;
+    border-radius: 1rem;
     font-size: 0.875rem;
     font-weight: 600;
     white-space: nowrap;
     @include smooth-transition;
-    border: 1px solid rgba(59, 130, 246, 0.2);
-
-    &:hover,
-    &.active {
+    
+    &:hover, &.active {
       background: $color-primary;
       color: white;
       transform: translateY(-2px);
@@ -256,38 +278,125 @@
   }
 }
 
-// —————————————— ANIMATIONS ——————————————
-@keyframes pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.2); }
-}
-
 // —————————————— RESPONSIVE ——————————————
 @media (max-width: 768px) {
-  .search-bar { display: none; }
-  .nav-links {
+  .navbar {
+    padding: 0.5rem 0;
+  }
+
+  .nav-content {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .mobile-menu-btn {
+    display: flex !important;
     position: absolute;
-    top: 100%;
+    top: 0.5rem;
+    left: 0.5rem;
+    z-index: 1001;
+  }
+
+  .logo {
+    flex: none;
+    width: auto;
+  }
+
+  .logo-link {
+    font-size: 1.2rem;
+
+    .logo-icon {
+      font-size: 1.2rem;
+    }
+  }
+
+  .mobile-search {
+    display: flex !important;
+    width: 100%;
+    max-width: none;
+    margin: 0.5rem 0.5rem;
+  }
+
+  .search-bar {
+    display: none !important;
+  }
+
+  .nav-links {
+    position: fixed;
+    top: 70px;
     left: 0;
     right: 0;
-    background: rgba(15, 23, 42, 0.95);
+    background: rgba(15, 23, 42, 0.98);
     backdrop-filter: blur(20px);
     flex-direction: column;
     padding: 1.5rem;
     gap: 1rem;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
     opacity: 0;
     visibility: hidden;
     transform: translateY(-20px);
     @include smooth-transition;
+    z-index: 999;
+    max-height: calc(100vh - 70px);
+    overflow-y: auto;
+    width: 100%;
 
     &.active {
       opacity: 1;
       visibility: visible;
       transform: translateY(0);
     }
+
+    a {
+      width: 100%;
+      text-align: center;
+      padding: 1rem;
+      border-radius: 1.5rem;
+      display: block;
+    }
+
+    .cart-link {
+      justify-content: center;
+    }
+
+    .user-menu {
+      width: 100%;
+      flex-direction: column;
+      padding: 1rem;
+    }
+
+    .btn-logout, .btn-login {
+      width: 100%;
+      text-align: center;
+      padding: 1rem;
+    }
   }
 
-  .mobile-menu-btn { display: block; }
-  .categories-bar { display: none; }
+  .categories-bar {
+    display: none !important;
+  }
+
+  .mobile-categories {
+    display: block !important;
+    background: rgba(30, 41, 59, 0.6);
+    border-radius: 1.5rem;
+    padding: 0.75rem; // Padding réduit
+    margin: 0.5rem 0; // Margin verticale réduite
+  }
 }
+
+@media (min-width: 769px) {
+  .mobile-menu-btn {
+    display: none !important;
+  }
+
+  .logo {
+    flex: 0;
+  }
+
+  .mobile-search {
+    display: none !important;
+  }
+}
+

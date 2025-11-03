@@ -11,7 +11,7 @@ import { FormsModule } from '@angular/forms';
   standalone: true,
   imports: [CommonModule, RouterModule, FormsModule],
   templateUrl: './header.html',
-  styleUrl: './header.scss',
+  styleUrls: ['./header.scss'],
 })
 export class HeaderComponent implements OnInit {
   cartItemCount = 0;
@@ -20,10 +20,23 @@ export class HeaderComponent implements OnInit {
   searchQuery = '';
   categories: string[] = [];
   isMenuOpen = false;
-
-  // DÉCLARATIONS OBLIGATOIRES
-  isMobile = false;
   isScrolled = false;
+  isDesktop = window.innerWidth >= 769;
+  isMobile = window.innerWidth <= 768;
+
+  @HostListener('window:resize')
+  onResize() {
+    this.isDesktop = window.innerWidth >= 769;
+    this.isMobile = window.innerWidth <= 768;
+    if (this.isDesktop && this.isMenuOpen) this.isMenuOpen = false;
+  }
+
+  @HostListener('window:scroll')
+  onScroll() {
+    this.isScrolled = window.scrollY > 20;
+  }
+
+  closeMenu() { this.isMenuOpen = false; }
 
   constructor(
     private cartService: CartService,
@@ -33,58 +46,31 @@ export class HeaderComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.cartService.cart$.subscribe(() => {
-      this.cartItemCount = this.cartService.getItemCount();
-    });
-
+    this.cartService.cart$.subscribe(() => this.cartItemCount = this.cartService.getItemCount());
     this.authService.currentUser$.subscribe(user => {
       this.currentUser = user;
       this.isAuthenticated = !!user;
     });
-
-    this.productService.getCategories().subscribe(cats => {
-      this.categories = cats.slice(0, 6);
-    });
-
-    // Initialisation mobile
-    this.isMobile = window.innerWidth <= 768;
+    this.productService.getCategories().subscribe(cats => this.categories = cats.slice(0, 6));
   }
 
   onSearch() {
     if (this.searchQuery.trim()) {
-      this.router.navigate(['/products'], { 
-        queryParams: { search: this.searchQuery } 
-      });
+      this.router.navigate(['/products'], { queryParams: { search: this.searchQuery } });
+      this.searchQuery = '';
+      this.closeMenu();
     }
   }
 
   logout() {
     this.authService.logout();
     this.router.navigate(['/']);
+    this.closeMenu();
   }
 
-  toggleMenu() {
-    this.isMenuOpen = !this.isMenuOpen;
-  }
+  toggleMenu() { this.isMenuOpen = !this.isMenuOpen; }
 
-  // DÉTECTION SCROLL & RESIZE
-  @HostListener('window:scroll')
-  onScroll() {
-    this.isScrolled = window.scrollY > 20;
-  }
-
-  @HostListener('window:resize')
-  onResize() {
-    this.isMobile = window.innerWidth <= 768;
-    if (this.isMobile && this.isMenuOpen) {
-      this.isMenuOpen = false;
-    }
-  }
-
-  // Formatage des catégories
   formatCategory(slug: string): string {
-    return slug
-      .replace(/-/g, ' ')
-      .replace(/\b\w/g, l => l.toUpperCase());
+    return slug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
   }
 }

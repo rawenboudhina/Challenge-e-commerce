@@ -1,9 +1,8 @@
 @use '../../shared/variables' as *; 
 // —————————————— BASE ——————————————
-.home-page {
-  min-height: 100vh;
-}
-
+ .home-page {
+  padding-top: 0 !important; // Hauteur du header mobile  
+} 
 // —————————————— HERO CAROUSEL ——————————————
 .hero-carousel {
   position: relative;
@@ -517,6 +516,9 @@
   .newsletter-card { grid-template-columns: 1fr 0.8fr; padding: 4rem 3rem; }
   .newsletter-form { flex-direction: row; }
   .features-grid { grid-template-columns: repeat(2, 1fr); }
+   .home-page {
+    padding-top: 100px; // Hauteur header + categories desktop
+  }
 }
 
 @media (min-width: 1025px) {

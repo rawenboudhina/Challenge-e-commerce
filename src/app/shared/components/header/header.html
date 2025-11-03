@@ -2,75 +2,102 @@
   <nav class="navbar">
     <div class="container">
       <div class="nav-content">
-
+        <!-- Bouton menu mobile -->
+        <button
+          class="mobile-menu-btn"
+          (click)="toggleMenu()"
+          [class.active]="isMenuOpen"
+          [attr.aria-label]="isMenuOpen ? 'Fermer le menu' : 'Ouvrir le menu'"
+          [attr.aria-expanded]="isMenuOpen"
+        >
+          <span class="menu-icon">{{ isMenuOpen ? '✕' : '☰' }}</span>
+        </button>
+        
         <!-- Logo -->
         <div class="logo">
-          <a routerLink="/" class="logo-link">
+          <a routerLink="/" class="logo-link" (click)="closeMenu()">
             <span class="logo-icon">TechZone</span>
-            <span class="logo-text">TechZone</span>
           </a>
         </div>
-
-        <!-- Search Bar (desktop) -->
-        <div class="search-bar" *ngIf="!isMobile">
-          <input 
-            type="text" 
+        
+        <!-- ✅ Recherche Mobile : TOUJOURS VISIBLE SUR MOBILE, indépendante du menu -->
+        <div class="mobile-search" *ngIf="isMobile">
+          <input
+            type="text"
             placeholder="Rechercher un produit..."
             [(ngModel)]="searchQuery"
             (keyup.enter)="onSearch()"
             class="search-input"
-            aria-label="Recherche de produits"
           >
-          <button class="search-btn" (click)="onSearch()" aria-label="Lancer la recherche">
-            Search
-          </button>
+          <button class="search-btn" (click)="onSearch()">🔍</button>
         </div>
-
-        <!-- Nav Links -->
+        
+        <!-- Recherche Desktop (cachée sur mobile) -->
+        <div class="search-bar">
+          <input
+            type="text"
+            placeholder="Rechercher un produit..."
+            [(ngModel)]="searchQuery"
+            (keyup.enter)="onSearch()"
+            class="search-input"
+          >
+          <button class="search-btn" (click)="onSearch()">🔍</button>
+        </div>
+        
+        <!-- Nav Links / Menu Mobile (SANS mobile-search dedans maintenant) -->
         <div class="nav-links" [class.active]="isMenuOpen">
-          <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+          <!-- Liens navigation -->
+          <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" (click)="closeMenu()">
             Accueil
           </a>
-          <a routerLink="/products" routerLinkActive="active">
+          <a routerLink="/products" routerLinkActive="active" (click)="closeMenu()">
             Produits
           </a>
-
+          
+          <!-- Catégories Mobile (dans le menu seulement) -->
+          @if (isMobile && categories.length > 0) {
+            <div class="mobile-categories">
+              <h3 class="categories-title">📂 Catégories</h3>
+              @for (category of categories; track category) {
+                <a
+                  [routerLink]="['/products']"
+                  [queryParams]="{category: category}"
+                  class="category-item"
+                  routerLinkActive="active"
+                  (click)="closeMenu()"
+                >
+                  {{ formatCategory(category) }}
+                </a>
+              }
+            </div>
+          }
+          
           @if (isAuthenticated) {
-            <a routerLink="/cart" routerLinkActive="active" class="cart-link">
-              Cart Panier
+            <a routerLink="/cart" routerLinkActive="active" class="cart-link" (click)="closeMenu()">
+              🛒 Panier
               @if (cartItemCount > 0) {
                 <span class="badge">{{ cartItemCount }}</span>
               }
             </a>
             <div class="user-menu">
-              <span class="user-name">Hello {{ currentUser?.firstName || 'User' }}</span>
+              <span class="user-name">👋 {{ currentUser?.firstName || 'User' }}</span>
               <button class="btn-logout" (click)="logout()">Déconnexion</button>
             </div>
           } @else {
-            <a routerLink="/login" class="btn-login">Connexion</a>
+            <a routerLink="/login" class="btn-login" (click)="closeMenu()">Connexion</a>
           }
         </div>
-
-        <!-- Mobile Menu Toggle -->
-        <button 
-          class="mobile-menu-btn" 
-          (click)="toggleMenu()" 
-          [attr.aria-label]="isMenuOpen ? 'Fermer le menu' : 'Ouvrir le menu'"
-          [attr.aria-expanded]="isMenuOpen"
-        >
-          {{ isMenuOpen ? 'Close' : 'Menu' }}
-        </button>
       </div>
     </div>
   </nav>
-
-  <!-- Categories Bar (desktop only) -->
+  
+  <!-- Barres catégories (desktop seulement) -->
   <div class="categories-bar" *ngIf="!isMobile">
     <div class="container">
       <div class="categories-list">
         @for (category of categories; track category) {
-          <a 
-            [routerLink]="['/products']" 
+          <a
+            [routerLink]="['/products']"
             [queryParams]="{category: category}"
             class="category-item"
             routerLinkActive="active"
