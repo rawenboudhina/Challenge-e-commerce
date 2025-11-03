@@ -1,0 +1,23 @@
+<div class="product-card">
+  <a [routerLink]="['/products', product.id]" class="product-link">
+    <div class="product-image-wrapper">
+      <img 
+        [src]="product.image" 
+        [alt]="product.name"
+        class="product-image"
+        loading="lazy"
+      >
+    </div>
+    <div class="card-body">
+      <h3 class="product-name">{{ product.name }}</h3>
+      <p class="product-price">${{ product.price }}</p>
+      @if (product.oldPrice) {
+        <p class="product-old-price">${{ product.oldPrice }}</p>
+      }
+      <div class="product-rating">
+        <span>Rating</span>
+        <span class="stars">{{ 'star'.repeat(product.rating || 5) }}</span>
+      </div>
+    </div>
+  </a>
+</div>

@@ -1,0 +1,277 @@
+<div class="home-page">
+  <!-- Hero Carousel Premium -->
+  <section class="hero-carousel">
+    <div class="carousel-container">
+      @for (banner of banners; track $index) {
+        <div class="carousel-slide" [class.active]="currentSlide === $index">
+          <div class="slide-background">
+            <img [src]="banner.image" [alt]="banner.title" class="slide-image" loading="lazy">
+            <div class="slide-overlay" [style.background]="banner.gradient"></div>
+          </div>
+         
+          <div class="slide-content">
+            <div class="container">
+              <div class="slide-text">
+                <p class="slide-subtitle">{{ banner.subtitle }}</p>
+                <h1 class="slide-title">{{ banner.title }}</h1>
+                <p class="slide-description">{{ banner.description }}</p>
+                <a routerLink="/products" class="btn-hero">
+                  {{ banner.cta }}
+                  <span class="arrow">→</span>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+     
+      <!-- Navigation -->
+      <button class="carousel-btn prev" (click)="prevSlide()" aria-label="Previous">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+      </button>
+      <button class="carousel-btn next" (click)="nextSlide()" aria-label="Next">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+      </button>
+     
+      <!-- Indicators -->
+      <div class="carousel-indicators">
+        @for (banner of banners; track $index) {
+          <button
+            class="indicator"
+            [class.active]="currentSlide === $index"
+            (click)="goToSlide($index)"
+            [attr.aria-label]="'Slide ' + ($index + 1)"
+          ></button>
+        }
+      </div>
+    </div>
+  </section>
+  <!-- Tech Categories Grid -->
+  <section class="categories-section">
+    <div class="container">
+      <div class="section-header-center">
+        <h2 class="section-title">Shop by Category</h2>
+        <p class="section-subtitle">Découvrez nos produits tech premium</p>
+      </div>
+     
+      <div class="tech-categories-grid">
+        @for (category of techCategories; track category.slug) {
+          <a
+            [routerLink]="['/products']"
+            [queryParams]="{category: category.slug}"
+            class="tech-category-card"
+            [style.--category-color]="category.color"
+          >
+            <div class="category-image-wrapper">
+              <img [src]="category.image" [alt]="category.name" class="category-image" loading="lazy">
+              <div class="category-overlay"></div>
+            </div>
+            <div class="category-content">
+              <span class="category-icon">{{ category.icon }}</span>
+              <h3 class="category-name">{{ category.name }}</h3>
+              <span class="category-arrow">→</span>
+            </div>
+          </a>
+        }
+      </div>
+    </div>
+  </section>
+  <!-- Featured Products - 12 produits en 4x3 -->
+  <section class="featured-section">
+    <div class="container">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">Featured Products</h2>
+          <p class="section-subtitle">Les meilleurs produits tech du moment</p>
+        </div>
+        <a routerLink="/products" class="view-all-btn">
+          View All
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+            <polyline points="12 5 19 12 12 19"></polyline>
+          </svg>
+        </a>
+      </div>
+      @if (loading) {
+        <div class="loading-container">
+          <div class="spinner"></div>
+          <p>Loading amazing products...</p>
+        </div>
+      } @else {
+        <div class="products-grid">
+          @for (product of featuredProducts; track product.id) {
+            <app-product-card [product]="product"></app-product-card>
+          }
+        </div>
+      }
+    </div>
+  </section>
+  <!-- Best Laptops - 4 produits -->
+  @if (laptops.length > 0) {
+    <section class="category-showcase">  <!-- Changé : suppression de bg-gradient-blue -->
+      <div class="container">
+        <div class="section-header">
+          <div>
+            <h2 class="section-title text-white">Best Laptops</h2>
+            <p class="section-subtitle text-white">Performances exceptionnelles pour créateurs</p>
+          </div>
+          <a [routerLink]="['/products']" [queryParams]="{category: 'laptops'}" class="view-all-btn btn-white">
+            View All
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+              <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
+          </a>
+        </div>
+        <div class="products-grid-4">
+          @for (product of laptops; track product.id) {
+            <app-product-card [product]="product"></app-product-card>
+          }
+        </div>
+      </div>
+    </section>
+  }
+  <!-- Best Smartphones - 4 produits -->
+  @if (smartphones.length > 0) {
+    <section class="category-showcase">  <!-- Changé : suppression de bg-gradient-purple -->
+      <div class="container">
+        <div class="section-header">
+          <div>
+            <h2 class="section-title text-white">Best Smartphones</h2>
+            <p class="section-subtitle text-white">La technologie dans votre poche</p>
+          </div>
+          <a [routerLink]="['/products']" [queryParams]="{category: 'smartphones'}" class="view-all-btn btn-white">
+            View All
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+              <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
+          </a>
+        </div>
+        <div class="products-grid-4">
+          @for (product of smartphones; track product.id) {
+            <app-product-card [product]="product"></app-product-card>
+          }
+        </div>
+      </div>
+    </section>
+  }
+  <!-- Best Tablets - 4 produits -->
+  @if (tablets.length > 0) {
+    <section class="category-showcase"> 
+      <div class="container">
+        <div class="section-header">
+          <div>
+            <h2 class="section-title text-white">Best Tablets</h2>
+            <p class="section-subtitle text-white">Puissance et portabilité réunies</p>
+          </div>
+          <a [routerLink]="['/products']" [queryParams]="{category: 'tablets'}" class="view-all-btn btn-white">
+            View All
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+              <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
+          </a>
+        </div>
+        <div class="products-grid-4">
+          @for (product of tablets; track product.id) {
+            <app-product-card [product]="product"></app-product-card>
+          }
+        </div>
+      </div>
+    </section>
+  }
+  <!-- Best Accessories - 4 produits -->
+  @if (accessories.length > 0) {
+    <section class="category-showcase">  <!-- Changé : suppression de bg-gradient-green -->
+      <div class="container">
+        <div class="section-header">
+          <div>
+            <h2 class="section-title text-white">Premium Accessories</h2>
+            <p class="section-subtitle text-white">Complétez votre expérience tech</p>
+          </div>
+          <a [routerLink]="['/products']" [queryParams]="{category: 'mobile-accessories'}" class="view-all-btn btn-white">
+            View All
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+              <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
+          </a>
+        </div>
+        <div class="products-grid-4">
+          @for (product of accessories; track product.id) {
+            <app-product-card [product]="product"></app-product-card>
+          }
+        </div>
+      </div>
+    </section>
+  }
+  <!-- Newsletter Premium -->
+  <section class="newsletter-section">
+    <div class="container">
+      <div class="newsletter-card">
+        <div class="newsletter-content">
+          <h2 class="newsletter-title">Stay Connected</h2>
+          <p class="newsletter-text">Abonnez-vous pour recevoir les dernières offres, nouveautés tech et deals exclusifs directement dans votre boîte mail</p>
+          <div class="newsletter-form">
+            <input type="email" placeholder="Enter your email..." class="newsletter-input" aria-label="Email address">
+            <button class="btn btn-primary btn-lg">Subscribe Now</button>
+          </div>
+        </div>
+        <div class="newsletter-visual">
+          <span class="newsletter-icon">🚀</span>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- Features Premium -->
+  <section class="features-section">
+    <div class="container">
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon-wrapper">
+            <svg class="feature-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+            </svg>
+          </div>
+          <h3 class="feature-title">Official Warranty</h3>
+          <p class="feature-text">All products backed by manufacturer warranty</p>
+        </div>
+       
+        <div class="feature-card">
+          <div class="feature-icon-wrapper">
+            <svg class="feature-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+            </svg>
+          </div>
+          <h3 class="feature-title">Fast Delivery</h3>
+          <p class="feature-text">Free shipping within 24-48 hours</p>
+        </div>
+       
+        <div class="feature-card">
+          <div class="feature-icon-wrapper">
+            <svg class="feature-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+            </svg>
+          </div>
+          <h3 class="feature-title">Secure Payment</h3>
+          <p class="feature-text">100% secure encrypted transactions</p>
+        </div>
+       
+        <div class="feature-card">
+          <div class="feature-icon-wrapper">
+            <svg class="feature-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"></path>
+            </svg>
+          </div>
+          <h3 class="feature-title">24/7 Support</h3>
+          <p class="feature-text">Customer service always available</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>

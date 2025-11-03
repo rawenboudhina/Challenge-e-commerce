@@ -1,0 +1,84 @@
+<header class="header" [class.scrolled]="isScrolled">
+  <nav class="navbar">
+    <div class="container">
+      <div class="nav-content">
+
+        <!-- Logo -->
+        <div class="logo">
+          <a routerLink="/" class="logo-link">
+            <span class="logo-icon">TechZone</span>
+            <span class="logo-text">TechZone</span>
+          </a>
+        </div>
+
+        <!-- Search Bar (desktop) -->
+        <div class="search-bar" *ngIf="!isMobile">
+          <input 
+            type="text" 
+            placeholder="Rechercher un produit..."
+            [(ngModel)]="searchQuery"
+            (keyup.enter)="onSearch()"
+            class="search-input"
+            aria-label="Recherche de produits"
+          >
+          <button class="search-btn" (click)="onSearch()" aria-label="Lancer la recherche">
+            Search
+          </button>
+        </div>
+
+        <!-- Nav Links -->
+        <div class="nav-links" [class.active]="isMenuOpen">
+          <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+            Accueil
+          </a>
+          <a routerLink="/products" routerLinkActive="active">
+            Produits
+          </a>
+
+          @if (isAuthenticated) {
+            <a routerLink="/cart" routerLinkActive="active" class="cart-link">
+              Cart Panier
+              @if (cartItemCount > 0) {
+                <span class="badge">{{ cartItemCount }}</span>
+              }
+            </a>
+            <div class="user-menu">
+              <span class="user-name">Hello {{ currentUser?.firstName || 'User' }}</span>
+              <button class="btn-logout" (click)="logout()">Déconnexion</button>
+            </div>
+          } @else {
+            <a routerLink="/login" class="btn-login">Connexion</a>
+          }
+        </div>
+
+        <!-- Mobile Menu Toggle -->
+        <button 
+          class="mobile-menu-btn" 
+          (click)="toggleMenu()" 
+          [attr.aria-label]="isMenuOpen ? 'Fermer le menu' : 'Ouvrir le menu'"
+          [attr.aria-expanded]="isMenuOpen"
+        >
+          {{ isMenuOpen ? 'Close' : 'Menu' }}
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Categories Bar (desktop only) -->
+  <div class="categories-bar" *ngIf="!isMobile">
+    <div class="container">
+      <div class="categories-list">
+        @for (category of categories; track category) {
+          <a 
+            [routerLink]="['/products']" 
+            [queryParams]="{category: category}"
+            class="category-item"
+            routerLinkActive="active"
+          >
+            {{ formatCategory(category) }}
+          </a>
+        }
+      </div>
+    </div>
+  </div>
+</header>
