@@ -14,6 +14,8 @@ export interface Product {
   thumbnail?: string;
   brand?: string;
   discountPercentage?: number;
+  isNew?: boolean;  // Optionnel : true si produit récent (ex. 2025)
+  discount?: number;
 }
 
 export interface CartItem {

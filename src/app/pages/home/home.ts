@@ -21,7 +21,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   loading = true;
   currentSlide = 0;
   private carouselInterval: any;
-  
+
   // Catégories Tech - 5 catégories minimum
   techCategories = [
     {
@@ -65,7 +65,7 @@ export class HomeComponent implements OnInit, OnDestroy {
       description: 'Connected tech'
     }
   ];
-  
+
   // Banners avec images tech attractives
   banners = [
     {
@@ -101,21 +101,17 @@ export class HomeComponent implements OnInit, OnDestroy {
       gradient: 'linear-gradient(135deg, rgba(16, 185, 129, 0.85), rgba(5, 150, 105, 0.65))'
     }
   ];
-
   constructor(private productService: ProductService) {}
-
   ngOnInit() {
     this.loadFeaturedProducts();
     this.loadCategoryProducts();
     this.startCarousel();
   }
-
   ngOnDestroy() {
     if (this.carouselInterval) {
       clearInterval(this.carouselInterval);
     }
   }
-
   loadFeaturedProducts() {
     this.loading = true;
     // Charger 12 produits pour avoir 4x3 en grid
@@ -130,7 +126,6 @@ export class HomeComponent implements OnInit, OnDestroy {
       }
     });
   }
-
   loadCategoryProducts() {
     // Laptops - 4 produits
     this.productService.getProductsByCategory('laptops').subscribe({
@@ -138,21 +133,18 @@ export class HomeComponent implements OnInit, OnDestroy {
         this.laptops = products.slice(0, 4);
       }
     });
-
     // Smartphones - 4 produits
     this.productService.getProductsByCategory('smartphones').subscribe({
       next: (products) => {
         this.smartphones = products.slice(0, 4);
       }
     });
-
     // Tablets - 4 produits
     this.productService.getProductsByCategory('tablets').subscribe({
       next: (products) => {
         this.tablets = products.slice(0, 4);
       }
     });
-
     // Accessories - 4 produits
     this.productService.getProductsByCategory('mobile-accessories').subscribe({
       next: (products) => {
@@ -160,22 +152,22 @@ export class HomeComponent implements OnInit, OnDestroy {
       }
     });
   }
-
   startCarousel() {
     this.carouselInterval = setInterval(() => {
       this.nextSlide();
     }, 6000); // 6 secondes au lieu de 5
   }
-
   nextSlide() {
     this.currentSlide = (this.currentSlide + 1) % this.banners.length;
   }
-
   prevSlide() {
     this.currentSlide = this.currentSlide === 0 ? this.banners.length - 1 : this.currentSlide - 1;
   }
-
   goToSlide(index: number) {
     this.currentSlide = index;
+  }
+  // Dans home.ts, ajoutez cette méthode dans la classe HomeComponent :
+  trackByProductId(index: number, product: any): number {
+    return product.id;
   }
 }
