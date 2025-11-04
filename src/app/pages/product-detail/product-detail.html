@@ -1,1 +1,186 @@
-<p>product-detail works!</p>
+<div class="product-detail-page" *ngIf="!loading; else loadingTemplate">
+  <!-- Contenu principal -->
+  <section class="product-main">
+    <div class="container">
+      <div class="product-grid">
+        <!-- Galerie (minimum 3 images) -->
+        <div class="gallery">
+          <div class="main-image">
+            <img [src]="product?.images?.[selectedImage] || product?.image || '/assets/fallback.jpg'"
+                 [alt]="product?.title || 'Produit'"
+                 (error)="onImageError($event)"
+                 loading="lazy" />
+          </div>
+          <div class="thumbnails">
+            @for (img of (product?.images || [product?.image]); track $index) {
+              <div class="thumb" [class.active]="selectedImage === $index" (click)="selectImage($index)" role="button" tabindex="0">
+                <img [src]="img || '/assets/fallback.jpg'" [alt]="product?.title || 'Produit'" loading="lazy" />
+              </div>
+            }
+          </div>
+        </div>
+        <!-- Infos -->
+        <div class="info">
+          <h1 class="title">{{ product?.title || 'Produit inconnu' }}</h1>
+         
+          <!-- Rating -->
+          <div class="rating" *ngIf="product?.rating">
+            <div class="stars">
+              @for (star of ratingStars; track $index) {
+                <span class="star" [class.full]="star === 1" [class.half]="star === 0.5" [class.empty]="star === 0">★</span>
+              }
+            </div>
+            <span class="count">({{ (product?.rating?.count || 0) }} avis)</span>
+          </div>
+          <!-- Prix -->
+          <div class="price-stock">
+            <span class="price">{{ (product?.price || 0) | currency:'EUR' }}</span>
+            <span class="stock" [class.out]="!inStock">{{ stockText }}</span>
+            @if (product?.discountPercentage) {
+              <span class="original-price">{{ originalPrice | currency:'EUR' }}</span>
+              <span class="discount-badge">-{{ product?.discountPercentage }}%</span>
+              <span class="savings">Économisez {{ savings | currency:'EUR' }}</span>
+            }
+          </div>
+          <!-- Description -->
+          <div class="description" [innerHTML]="safeDescription"></div>
+          <!-- Specs -->
+          <div class="specs" *ngIf="productSpecs.length > 0">
+            <h3>Caractéristiques techniques</h3>
+            <ul>
+              @for (spec of productSpecs; track spec.key) {
+                <li><strong>{{ spec.key }} :</strong> {{ spec.value }}</li>
+              }
+            </ul>
+          </div>
+          <!-- Actions -->
+          <div class="actions" *ngIf="inStock">
+            <div class="quantity">
+              <button (click)="decreaseQuantity()" [disabled]="quantity <= 1">−</button>
+              <input type="number" [(ngModel)]="quantity" min="1" [max]="getProductStock()" (change)="validateQuantity()">
+              <button (click)="increaseQuantity()" [disabled]="quantity >= getProductStock()">+</button>
+            </div>
+            <button class="btn-add" (click)="addToCart()" [disabled]="quantity < 1">
+              Ajouter au panier
+            </button>
+            <button class="btn-wishlist" (click)="toggleWishlist()" [attr.aria-label]="'Retirer de la wishlist'">
+              {{ isInWishlist ? '❤️ Retirer' : '🤍 Ajouter' }} à la liste
+            </button>
+          </div>
+          <div class="out-of-stock" *ngIf="!inStock">
+            Produit indisponible. <button class="btn-notify" (click)="notifyWhenAvailable()">Notifier</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- Avis -->
+  <section class="reviews" *ngIf="customerReviews.length > 0">
+    <div class="container">
+      <div class="reviews-header">
+        <h2>Évaluations et avis clients</h2>
+        <div class="overall-rating">
+          <div class="overall-stars">
+            @for (star of overallRatingStars; track $index) {
+              <span class="star" [class.full]="star === 1" [class.half]="star === 0.5" [class.empty]="star === 0">★</span>
+            }
+          </div>
+          <span class="overall-score">{{ overallRating | number:'1.1-1' }}/5</span>
+          <span class="review-count">({{ customerReviews.length }} avis)</span>
+        </div>
+      </div>
+      <!-- Formulaire d'avis -->
+      <div class="review-form" *ngIf="showReviewForm">
+        <h3>Écrire un avis</h3>
+        <form (ngSubmit)="submitReview()">
+          <div class="form-group">
+            <label for="userName">Votre nom :</label>
+            <input type="text" id="userName" [(ngModel)]="newReview.user" name="user" required>
+          </div>
+          <div class="form-group">
+            <label>Note :</label>
+            <div class="stars-input">
+              @for (star of [1,2,3,4,5]; track star) {
+                <span class="star-input" (click)="setReviewRating(star)" [class.selected]="(newReview.rating ?? 0) >= star">★</span>
+              }
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="comment">Commentaire :</label>
+            <textarea id="comment" [(ngModel)]="newReview.comment" name="comment" rows="4" required></textarea>
+          </div>
+          <button type="submit" class="btn-submit">Envoyer l'avis</button>
+          <button type="button" (click)="cancelReview()" class="btn-cancel">Annuler</button>
+        </form>
+      </div>
+      <!-- Breakdown -->
+      <div class="rating-breakdown">
+        @for (bar of ratingBreakdown; track bar.stars) {
+          <div class="bar">
+            <span class="stars-label">{{ bar.stars }} 
+              @for (s of getMiniStars(bar.stars); track $index) { 
+                <span class="mini-star" [class.full]="s === 1">★</span>
+              }
+            </span>
+            <div class="progress-container">
+              <div class="progress-bar" [style.width.%]="bar.percentage"></div>
+            </div>
+            <span class="percentage">{{ bar.percentage }}%</span>
+          </div>
+        }
+      </div>
+      @for (review of customerReviews; track $index) {
+        <div class="review-card">
+          <div class="review-header">
+            <div class="user-info">
+              <span class="user">{{ review.user }}</span>
+              <span class="date">{{ review.date }}</span>
+            </div>
+            <div class="review-stars">
+              @for (star of getStarsForReview(review.rating); track $index) {
+                <span class="star" [class.filled]="star === 1">★</span>
+              }
+            </div>
+          </div>
+          <p class="review-comment">{{ review.comment }}</p>
+          <div class="review-actions">
+            <button class="btn-helpful" (click)="markHelpful(review)" [disabled]="review.helpfulClicked"
+                    title="Marquer cet avis comme utile (cliquez pour voter une fois)">
+              Utile ({{ review.helpful ?? 0 }})
+            </button>
+          </div>
+        </div>
+      }
+      <button class="btn-load-more" *ngIf="hasMoreReviews" (click)="loadMoreReviews()">Charger plus d'avis</button>
+      <button class="btn-write-review" (click)="openReviewModal()" *ngIf="!showReviewForm">Écrire un avis</button>
+    </div>
+  </section>
+  <!-- Similaires -->
+  <section class="similar-products" *ngIf="similarProducts.length > 0">
+    <div class="container">
+      <h2>Produits similaires</h2>
+      <div class="similar-grid">
+        @for (similar of similarProducts; track similar.id) {
+          <app-product-card [product]="similar" (addToCart)="onSimilarProductAddToCart(similar)"></app-product-card>
+        }
+      </div>
+    </div>
+  </section>
+</div>
+<!-- Loading -->
+<ng-template #loadingTemplate>
+  <div class="skeleton-grid container">
+    <div class="gallery">
+      <div class="skeleton-bg main-image"></div>
+      <div class="thumbnails">
+        @for (i of [1,2,3]; track i) { <div class="skeleton-bg thumb"></div> }
+      </div>
+    </div>
+    <div class="info">
+      <div class="skeleton-bg skeleton-title"></div>
+      <div class="skeleton-bg skeleton-text"></div>
+      <div class="skeleton-bg skeleton-price"></div>
+      <div class="skeleton-bg skeleton-btn"></div>
+    </div>
+  </div>
+</ng-template>

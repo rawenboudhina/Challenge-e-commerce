@@ -1,173 +1,186 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { ProductService } from '../../core/services/product';
 import { Product } from '../../core/models/product.model';
 import { ProductCardComponent } from '../../shared/components/product-card/product-card';
+import { CartService } from '../../core/services/cart';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, RouterModule, ProductCardComponent],
+  imports: [
+    CommonModule,
+    RouterModule,
+    FormsModule,
+    ProductCardComponent
+  ],
   templateUrl: './home.html',
   styleUrls: ['./home.scss']
 })
 export class HomeComponent implements OnInit, OnDestroy {
+  @ViewChild('searchInput') searchInput!: ElementRef;
+
+  promotedProducts: Product[] = [];
   featuredProducts: Product[] = [];
-  laptops: Product[] = [];
-  smartphones: Product[] = [];
-  tablets: Product[] = [];
-  accessories: Product[] = [];
+  categories: any[] = [];
   loading = true;
+  searchTerm = '';
+
   currentSlide = 0;
   private carouselInterval: any;
 
-  // Catégories Tech - 5 catégories minimum
-  techCategories = [
-    {
-      name: 'Laptops',
-      slug: 'laptops',
-      icon: '💻',
-      color: '#3b82f6',
-      image: 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=500&h=500&fit=crop',
-      description: 'High-performance laptops'
-    },
-    {
-      name: 'Smartphones',
-      slug: 'smartphones',
-      icon: '📱',
-      color: '#8b5cf6',
-      image: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=500&h=500&fit=crop',
-      description: 'Latest smartphones'
-    },
-    {
-      name: 'Tablets',
-      slug: 'tablets',
-      icon: '📲',
-      color: '#ec4899',
-      image: 'https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=500&h=500&fit=crop',
-      description: 'Powerful tablets'
-    },
-    {
-      name: 'Headphones',
-      slug: 'mobile-accessories',
-      icon: '🎧',
-      color: '#10b981',
-      image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&h=500&fit=crop',
-      description: 'Premium audio'
-    },
-    {
-      name: 'Smart Devices',
-      slug: 'mobile-accessories',
-      icon: '⌚',
-      color: '#f59e0b',
-      image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500&h=500&fit=crop',
-      description: 'Connected tech'
-    }
-  ];
+  constructor(
+    private productService: ProductService,
+    private cartService: CartService,
+    private router: Router
+  ) {}
 
-  // Banners avec images tech attractives
-  banners = [
-    {
-      title: 'Ultra-Powerful Laptops',
-      subtitle: 'Performance Unleashed',
-      description: 'Experience the ultimate computing power for creators and professionals',
-      image: 'https://images.unsplash.com/photo-1603302576837-37561b2e2302?w=1920&h=800&fit=crop',
-      cta: 'Shop Now',
-      gradient: 'linear-gradient(135deg, rgba(37, 99, 235, 0.85), rgba(59, 130, 246, 0.65))'
-    },
-    {
-      title: 'Next-Gen Smartphones',
-      subtitle: 'Innovation in Your Hands',
-      description: 'Discover cutting-edge mobile technology that redefines excellence',
-      image: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=1920&h=800&fit=crop',
-      cta: 'Explore',
-      gradient: 'linear-gradient(135deg, rgba(139, 92, 246, 0.85), rgba(168, 85, 247, 0.65))'
-    },
-    {
-      title: 'Premium Audio Experience',
-      subtitle: 'Sound Perfection',
-      description: 'Immerse yourself in crystal-clear audio with advanced noise cancellation',
-      image: 'https://images.unsplash.com/photo-1545127398-14699f92334b?w=1920&h=800&fit=crop',
-      cta: 'Discover',
-      gradient: 'linear-gradient(135deg, rgba(236, 72, 153, 0.85), rgba(251, 113, 133, 0.65))'
-    },
-    {
-      title: 'Smart Technology',
-      subtitle: 'Connected Life',
-      description: 'Stay connected with intelligent devices that enhance your lifestyle',
-      image: 'https://images.unsplash.com/photo-1519558260268-cde7e03a0152?w=1920&h=800&fit=crop',
-      cta: 'Learn More',
-      gradient: 'linear-gradient(135deg, rgba(16, 185, 129, 0.85), rgba(5, 150, 105, 0.65))'
+ngOnInit(): void {
+  this.categories = this.productService.categories;
+
+  // CHARGE PROMO + FORCE AU MOINS 6 PRODUITS
+  this.productService.getAllProducts(50).subscribe(products => {
+    let strongPromo = products
+      .filter(p => (p.discountPercentage ?? 0) > 15) // BAISSE À 15% POUR AVOIR PLUS
+      .sort((a, b) => (b.discountPercentage ?? 0) - (a.discountPercentage ?? 0))
+      .slice(0, 6);
+
+    // SI PAS ASSEZ → AJOUTE DES NOUVEAUTÉS
+    if (strongPromo.length < 6) {
+      const extras = products
+        .filter(p => p.isNew && !strongPromo.find(s => s.id === p.id))
+        .slice(0, 6 - strongPromo.length);
+      strongPromo = [...strongPromo, ...extras];
     }
-  ];
-  constructor(private productService: ProductService) {}
-  ngOnInit() {
-    this.loadFeaturedProducts();
-    this.loadCategoryProducts();
-    this.startCarousel();
-  }
-  ngOnDestroy() {
-    if (this.carouselInterval) {
-      clearInterval(this.carouselInterval);
+
+    // SI TOUJOURS PAS → IPHONE + 5 AUTRES ALÉATOIRES
+    if (strongPromo.length === 0) {
+      strongPromo = products.slice(0, 6);
     }
+
+    this.promotedProducts = strongPromo.length > 0 ? strongPromo : this.getFallbackProducts();
+  });
+
+  this.loadFeaturedProducts();
+  this.startCarousel();
+}
+
+  ngOnDestroy(): void {
+    if (this.carouselInterval) clearInterval(this.carouselInterval);
   }
-  loadFeaturedProducts() {
+  
+/* 
+  loadPromotedProducts(): void {
+    console.log('Produits promo:', products.filter(p => p.discountPercentage || p.isNew));
+    this.productService.getAllProducts(50).subscribe(products => {
+      this.promotedProducts = products
+        .filter(p => (p.discountPercentage ?? 0) > 20 || p.isNew)
+        .sort((a, b) => (b.discountPercentage ?? 0) - (a.discountPercentage ?? 0))
+        .slice(0, 6);
+    }); */
+  
+
+  loadFeaturedProducts(): void {
     this.loading = true;
-    // Charger 12 produits pour avoir 4x3 en grid
     this.productService.getAllProducts(12).subscribe({
       next: (products) => {
         this.featuredProducts = products;
         this.loading = false;
       },
-      error: (error) => {
-        console.error('Erreur lors du chargement des produits', error);
-        this.loading = false;
-      }
+      error: () => this.loading = false
     });
   }
-  loadCategoryProducts() {
-    // Laptops - 4 produits
-    this.productService.getProductsByCategory('laptops').subscribe({
-      next: (products) => {
-        this.laptops = products.slice(0, 4);
-      }
-    });
-    // Smartphones - 4 produits
-    this.productService.getProductsByCategory('smartphones').subscribe({
-      next: (products) => {
-        this.smartphones = products.slice(0, 4);
-      }
-    });
-    // Tablets - 4 produits
-    this.productService.getProductsByCategory('tablets').subscribe({
-      next: (products) => {
-        this.tablets = products.slice(0, 4);
-      }
-    });
-    // Accessories - 4 produits
-    this.productService.getProductsByCategory('mobile-accessories').subscribe({
-      next: (products) => {
-        this.accessories = products.slice(0, 4);
-      }
-    });
+
+  startCarousel(): void {
+    this.carouselInterval = setInterval(() => this.nextSlide(), 6000);
   }
-  startCarousel() {
-    this.carouselInterval = setInterval(() => {
-      this.nextSlide();
-    }, 6000); // 6 secondes au lieu de 5
+
+  nextSlide(): void {
+    this.currentSlide = (this.currentSlide + 1) % this.promotedProducts.length;
   }
-  nextSlide() {
-    this.currentSlide = (this.currentSlide + 1) % this.banners.length;
+
+  prevSlide(): void {
+    this.currentSlide = this.currentSlide === 0
+      ? this.promotedProducts.length - 1
+      : this.currentSlide - 1;
   }
-  prevSlide() {
-    this.currentSlide = this.currentSlide === 0 ? this.banners.length - 1 : this.currentSlide - 1;
-  }
-  goToSlide(index: number) {
+
+  goToSlide(index: number): void {
     this.currentSlide = index;
   }
-  // Dans home.ts, ajoutez cette méthode dans la classe HomeComponent :
-  trackByProductId(index: number, product: any): number {
-    return product.id;
+
+  search(event: Event): void {
+    event.preventDefault();
+    if (this.searchTerm.trim()) {
+      this.router.navigate(['/products'], {
+        queryParams: { search: this.searchTerm.trim() }
+      });
+      this.searchTerm = '';
+    }
   }
+
+  onAddToCart(product: Product): void {
+    this.cartService.addToCart(product);
+  }
+trackByProductId(index: number, product: Product): number {
+  return product.id;
+}
+
+trackByCategory(index: number, category: any): string {
+  return category.slug;
+}
+loadPromotedProducts(): void {
+  this.productService.getAllProducts(50).subscribe(products => {
+    let strongPromo = products
+      .filter(p => (p.discountPercentage ?? 0) > 20) // SEULEMENT >20%
+      .sort((a, b) => (b.discountPercentage ?? 0) - (a.discountPercentage ?? 0))
+      .slice(0, 6);
+
+    this.promotedProducts = strongPromo.length > 0 ? strongPromo : [{
+      id: 999,
+      title: "iPhone 16 Pro Max",
+      price: 1299,
+      description: "Le futur dans votre poche. Caméra 48MP, A18 Pro, batterie 2 jours.",
+      image: "https://images.unsplash.com/photo-1592750475371-7a84eaa3e88b?w=800",
+      discountPercentage: 25,
+      isNew: true
+    } as Product];
+  });
+}
+private getFallbackProducts(): Product[] {
+  return [
+    {
+      id: 999, title: "iPhone 16 Pro Max", price: 1299, discountPercentage: 25, isNew: true,
+      image: "https://images.unsplash.com/photo-1592750475371-7a84eaa3e88b?w=800",
+      description: "Caméra 48MP, A18 Pro, batterie 2 jours."
+    },
+    {
+      id: 998, title: "Samsung Galaxy S25", price: 999, discountPercentage: 30, isNew: true,
+      image: "https://images.unsplash.com/photo-1607938077363-2d2e0e0aca37?w=800",
+      description: "Écran AMOLED 120Hz, IA intégrée."
+    },
+    {
+      id: 997, title: "MacBook Air M3", price: 1199, discountPercentage: 20,
+      image: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=800",
+      description: "Léger, puissant, 18h d'autonomie."
+    },
+    {
+      id: 996, title: "AirPods Pro 2", price: 279, discountPercentage: 35,
+      image: "https://images.unsplash.com/photo-1606843050554-2eb1f75cea2c?w=800",
+      description: "Réduction de bruit active, son spatial."
+    },
+    {
+      id: 995, title: "PS5 Pro", price: 699, discountPercentage: 15, isNew: true,
+      image: "https://images.unsplash.com/photo-1606149059548-87b70f0e9f1e?w=800",
+      description: "4K 120FPS, ray tracing."
+    },
+    {
+      id: 994, title: "Nintendo Switch 2", price: 399, discountPercentage: 10, isNew: true,
+      image: "https://images.unsplash.com/photo-1571415073823-3e3c9c1e0945?w=800",
+      description: "Hybride, 4K docké, Joy-Con 2."
+    }
+  ] as Product[];
+}
 }

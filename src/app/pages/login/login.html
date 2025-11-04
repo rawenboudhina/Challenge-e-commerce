@@ -1,1 +1,51 @@
-<p>login works!</p>
+<!-- pages/login/login.html -->
+<div class="auth-page">
+  <div class="container">
+    <div class="auth-card">
+      <h1>Connexion</h1>
+      <p>Accédez à votre compte TechZone</p>
+
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input 
+            type="email" 
+            id="email" 
+            formControlName="email" 
+            placeholder="votre@email.com"
+            [class.error]="f['email'].invalid && f['email'].touched"
+          >
+          <div *ngIf="f['email'].invalid && f['email'].touched" class="error-msg">
+            <span *ngIf="f['email'].errors?.['required']">Email requis</span>
+            <span *ngIf="f['email'].errors?.['email']">Email invalide</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="password">Mot de passe</label>
+          <input 
+            type="password" 
+            id="password" 
+            formControlName="password" 
+            placeholder="••••••••"
+            [class.error]="f['password'].invalid && f['password'].touched"
+          >
+          <div *ngIf="f['password'].invalid && f['password'].touched" class="error-msg">
+            <span *ngIf="f['password'].errors?.['required']">Mot de passe requis</span>
+            <span *ngIf="f['password'].errors?.['minlength']">Minimum 6 caractères</span>
+          </div>
+        </div>
+
+        <div *ngIf="errorMessage" class="error-alert">{{ errorMessage }}</div>
+
+        <button type="submit" [disabled]="loginForm.invalid || loading" class="btn-submit">
+          {{ loading ? 'Connexion...' : 'Se connecter' }}
+        </button>
+      </form>
+
+      <div class="auth-link">
+        Pas de compte ? <a routerLink="/register">S'inscrire</a>
+      </div>
+    </div>
+  </div>
+</div>

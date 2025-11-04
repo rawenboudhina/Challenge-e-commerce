@@ -340,10 +340,28 @@
     .quick-actions {
       flex-direction: column;
       gap: 0.5rem;
-      .wishlist-btn {
-        align-self: stretch;
-        padding: 0.5rem;
-      }
+  
+       .wishlist-btn {
+  background: none;
+  border: none;
+  padding: 8px;
+  cursor: pointer;
+  color: #ccc;
+
+  svg {
+    width: 20px;
+    height: 20px;
+    transition: color 0.2s ease;
+  }
+
+  &.active {
+    color: #e74c3c; // rouge quand dans la wishlist
+  }
+
+  &:hover {
+    color: #e74c3c;
+  }
+}
       .quick-buy-btn {
         width: 100%;
       }

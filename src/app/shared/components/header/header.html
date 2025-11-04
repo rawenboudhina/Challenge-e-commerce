@@ -2,7 +2,7 @@
   <nav class="navbar">
     <div class="container">
       <div class="nav-content">
-        <!-- Bouton menu mobile -->
+        <!-- Menu mobile -->
         <button
           class="mobile-menu-btn"
           (click)="toggleMenu()"
@@ -12,98 +12,253 @@
         >
           <span class="menu-icon">{{ isMenuOpen ? '✕' : '☰' }}</span>
         </button>
-        
+
         <!-- Logo -->
         <div class="logo">
           <a routerLink="/" class="logo-link" (click)="closeMenu()">
             <span class="logo-icon">TechZone</span>
           </a>
         </div>
-        
-        <!-- ✅ Recherche Mobile : TOUJOURS VISIBLE SUR MOBILE, indépendante du menu -->
+
+        <!-- Recherche Mobile -->
         <div class="mobile-search" *ngIf="isMobile">
           <input
+            #searchInput
             type="text"
-            placeholder="Rechercher un produit..."
+            placeholder="Rechercher..."
             [(ngModel)]="searchQuery"
+            (input)="onSearchInput()"
             (keyup.enter)="onSearch()"
             class="search-input"
-          >
-          <button class="search-btn" (click)="onSearch()">🔍</button>
+          />
+          <button class="search-btn" (click)="onSearch()">Recherche</button>
         </div>
-        
-        <!-- Recherche Desktop (cachée sur mobile) -->
+
+        <!-- Recherche Desktop -->
         <div class="search-bar">
           <input
+            #searchInput
             type="text"
             placeholder="Rechercher un produit..."
             [(ngModel)]="searchQuery"
+            (input)="onSearchInput()"
             (keyup.enter)="onSearch()"
             class="search-input"
-          >
-          <button class="search-btn" (click)="onSearch()">🔍</button>
+          />
+          <button class="search-btn" (click)="onSearch()">Recherche</button>
         </div>
-        
-        <!-- Nav Links / Menu Mobile (SANS mobile-search dedans maintenant) -->
+
+        <!-- Dropdown Recherche -->
+        <div class="search-dropdown" *ngIf="showSearchDropdown" [@fadeInOut]>
+          <div class="search-results">
+            @for (product of searchResults; track product.id) {
+            <a class="search-result-item" (click)="goToProduct(product.id)">
+              <img [src]="product.image" [alt]="product.title" class="result-thumb" />
+              <div class="result-info">
+                <div class="result-title">{{ product.title }}</div>
+                <div class="result-price">{{ product.price | currency : 'EUR' }}</div>
+              </div>
+            </a>
+            } @if (searchResults.length === 0 && searchQuery.trim()) {
+            <div class="search-no-result">Aucun résultat</div>
+            }
+          </div>
+          <a
+            class="search-view-all"
+            [routerLink]="['/products']"
+            [queryParams]="{ search: searchQuery }"
+            (click)="clearSearch()"
+          >
+            Voir tous les résultats pour « {{ searchQuery }} »
+          </a>
+        </div>
+
+        <!-- Navigation -->
         <div class="nav-links" [class.active]="isMenuOpen">
-          <!-- Liens navigation -->
-          <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" (click)="closeMenu()">
+          <a
+            routerLink="/"
+            routerLinkActive="active"
+            [routerLinkActiveOptions]="{ exact: true }"
+            (click)="closeMenu()"
+          >
             Accueil
           </a>
-          <a routerLink="/products" routerLinkActive="active" (click)="closeMenu()">
-            Produits
-          </a>
-          
-          <!-- Catégories Mobile (dans le menu seulement) -->
+          <a routerLink="/products" routerLinkActive="active" (click)="closeMenu()">Produits</a>
+
+          <!-- Catégories Mobile -->
           @if (isMobile && categories.length > 0) {
-            <div class="mobile-categories">
-              <h3 class="categories-title">📂 Catégories</h3>
-              @for (category of categories; track category) {
-                <a
-                  [routerLink]="['/products']"
-                  [queryParams]="{category: category}"
-                  class="category-item"
-                  routerLinkActive="active"
-                  (click)="closeMenu()"
-                >
-                  {{ formatCategory(category) }}
-                </a>
-              }
-            </div>
+          <div class="mobile-categories">
+            <h3 class="categories-title">Catégories</h3>
+            @for (category of categories; track category) {
+            <a
+              [routerLink]="['/products']"
+              [queryParams]="{ category: category }"
+              class="category-item"
+              routerLinkActive="active"
+              (click)="closeMenu()"
+            >
+              {{ formatCategory(category) }}
+            </a>
+            }
+          </div>
           }
-          
-          @if (isAuthenticated) {
-            <a routerLink="/cart" routerLinkActive="active" class="cart-link" (click)="closeMenu()">
-              🛒 Panier
+
+          <!-- Panier avec icône -->
+          <div class="cart-container" (click)="toggleCartDropdown($event)">
+            <a
+              class="cart-link"
+              routerLink="/cart"
+              routerLinkActive="active"
+              (click)="closeMenu(); $event.stopPropagation()"
+              title="Panier"
+            >
+              <span class="cart-icon">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <circle cx="9" cy="21" r="1"></circle>
+                  <circle cx="20" cy="21" r="1"></circle>
+                  <path d="M1 1h4l2.5 12.5a2 2 0 0 0 2 1.5h9a2 2 0 0 0 2-1.5L23 6H6"></path>
+                </svg>
+              </span>
+              <span class="cart-text">Panier</span>
               @if (cartItemCount > 0) {
-                <span class="badge">{{ cartItemCount }}</span>
+              <span class="badge">{{ cartItemCount }}</span>
               }
             </a>
-            <div class="user-menu">
-              <span class="user-name">👋 {{ currentUser?.firstName || 'User' }}</span>
-              <button class="btn-logout" (click)="logout()">Déconnexion</button>
+
+            <!-- Mini Panier -->
+            <div class="mini-cart-dropdown" *ngIf="showCartDropdown" [@fadeInOut]>
+              <div class="mini-cart-header">
+                <h4>Mon Panier ({{ cartItemCount }})</h4>
+                @if (cartItemCount === 0) {
+                <p>Votre panier est vide</p>
+                } @else {
+                <div class="mini-cart-items">
+                  @for (item of cartItems; track item.id) {
+                  <div class="mini-cart-item">
+                    <img
+                      [src]="item.product.image"
+                      [alt]="item.product.name"
+                      class="mini-cart-image"
+                    />
+                    <div class="mini-cart-details">
+                      <span class="mini-cart-name">{{ item.product.name }}</span>
+                      <span class="mini-cart-price">
+                        {{ item.product.price | currency : 'EUR' }} × {{ item.quantity }}
+                      </span>
+                    </div>
+                    <button
+                      class="remove-btn"
+                      (click)="removeFromCart(item.product.id); $event.stopPropagation()"
+                      title="Supprimer"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  }
+                </div>
+                <div class="mini-cart-footer">
+                  <div class="mini-cart-total">
+                    <strong>Total: {{ cartTotal | currency : 'EUR' }}</strong>
+                  </div>
+                  <a routerLink="/cart" class="btn-mini-cart" (click)="showCartDropdown = false">
+                    Voir le panier
+                  </a>
+                </div>
+                }
+              </div>
             </div>
-          } @else {
-            <a routerLink="/login" class="btn-login" (click)="closeMenu()">Connexion</a>
-          }
+          </div>
+
+          <!-- Profil avec icône -->
+          <div class="user-container">
+            <button
+              class="profile-btn"
+              (click)="toggleUserDropdown($event)"
+              [attr.aria-expanded]="showUserDropdown"
+              [title]="
+                isAuthenticated
+                  ? 'Compte de ' + (currentUser?.firstName || 'Utilisateur')
+                  : 'Connexion'
+              "
+            >
+              <span class="profile-icon">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+              </span>
+              @if (isAuthenticated) {
+              <span class="user-name">{{ currentUser?.firstName || 'Utilisateur' }}</span>
+              }
+            </button>
+
+            <!-- Dropdown Profil -->
+            <div class="user-dropdown" *ngIf="showUserDropdown" [@fadeInOut]>
+              @if (isAuthenticated) {
+              <a
+                routerLink="/profile"
+                class="dropdown-item"
+                (click)="closeUserDropdown(); closeMenu()"
+              >
+                Profil
+              </a>
+              <a
+                routerLink="/profile"
+                class="dropdown-item"
+                (click)="closeUserDropdown(); closeMenu()"
+              >
+                Mes favoris
+              </a>
+              <button class="dropdown-item logout-item" (click)="logout()">Déconnexion</button>
+              } @else {
+              <a
+                routerLink="/login"
+                class="dropdown-item"
+                (click)="closeUserDropdown(); closeMenu()"
+              >
+                Connexion
+              </a>
+              }
+            </div>
+          </div>
         </div>
       </div>
     </div>
   </nav>
-  
-  <!-- Barres catégories (desktop seulement) -->
+
+  <!-- Catégories Desktop -->
   <div class="categories-bar" *ngIf="!isMobile">
     <div class="container">
       <div class="categories-list">
         @for (category of categories; track category) {
-          <a
-            [routerLink]="['/products']"
-            [queryParams]="{category: category}"
-            class="category-item"
-            routerLinkActive="active"
-          >
-            {{ formatCategory(category) }}
-          </a>
+        <a
+          [routerLink]="['/products']"
+          [queryParams]="{ category: category }"
+          class="category-item"
+          routerLinkActive="active"
+        >
+          {{ formatCategory(category) }}
+        </a>
         }
       </div>
     </div>

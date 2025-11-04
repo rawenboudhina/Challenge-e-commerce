@@ -74,4 +74,10 @@ export class CartService {
   getCartItems(): CartItem[] {
     return this.cartItems;
   }
+  // Dans CartService (ajoutez cette méthode)
+clearCartDebug() {
+  this.cartItems = [];
+  localStorage.removeItem('cart');
+  this.cartSubject.next(this.cartItems);
+}
 }

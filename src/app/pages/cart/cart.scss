@@ -1,0 +1,231 @@
+.cart-page {
+  padding: 2rem 0;
+  background: #0f172a;
+  color: white;
+  min-height: 100vh;
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
+  }
+
+  .cart-header {
+    text-align: center;
+    margin-bottom: 2rem;
+
+    h1 {
+      font-size: 2rem;
+      font-weight: 900;
+      color: #3b82f6;
+      margin-bottom: 0.5rem;
+    }
+
+    p {
+      color: #94a3b8;
+      font-size: 1.1rem;
+    }
+  }
+
+  .cart-items {
+    .cart-item {
+      display: grid;
+      grid-template-columns: 80px 1fr auto auto auto auto;
+      gap: 1rem;
+      align-items: center;
+      background: #1e293b;
+      padding: 1rem;
+      border-radius: 0.75rem;
+      margin-bottom: 1rem;
+
+      @media (max-width: 768px) {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+        text-align: center;
+      }
+
+      .item-image {
+        width: 60px;
+        height: 60px;
+        object-fit: cover;
+        border-radius: 0.5rem;
+      }
+
+      .item-details {
+        flex: 1;
+
+        .item-title {
+          font-size: 1.1rem;
+          font-weight: 600;
+          margin-bottom: 0.25rem;
+        }
+
+        .item-description {
+          color: #94a3b8;
+          font-size: 0.9rem;
+          margin-bottom: 0.5rem;
+        }
+
+        .item-features {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.5rem;
+          margin-top: 0.25rem;
+
+          .feature {
+            background: #334155;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.8rem;
+            color: #94a3b8;
+          }
+        }
+      }
+
+      .item-price {
+        font-weight: 600;
+        color: #3b82f6;
+        text-align: center;
+      }
+
+      .item-quantity {
+        display: flex;
+        align-items: center;
+        background: #334155;
+        border-radius: 0.5rem;
+        overflow: hidden;
+
+        .qty-btn {
+          width: 40px;
+          height: 40px;
+          background: #475569;
+          color: white;
+          border: none;
+          cursor: pointer;
+          font-size: 1.2rem;
+          transition: background 0.2s;
+
+          &:hover {
+            background: #3b82f6;
+          }
+        }
+
+        .qty-input {
+          width: 60px;
+          text-align: center;
+          background: transparent;
+          color: white;
+          border: none;
+          font-weight: 600;
+        }
+      }
+
+      .item-subtotal {
+        font-weight: 600;
+        text-align: center;
+      }
+
+      .btn-remove {
+        background: #ef4444;
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        font-size: 0.9rem;
+        transition: background 0.2s;
+
+        &:hover {
+          background: #dc2626;
+        }
+      }
+    }
+  }
+
+  .cart-summary {
+    background: #1e293b;
+    padding: 1.5rem;
+    border-radius: 0.75rem;
+    margin: 2rem 0;
+    max-width: 400px;
+    margin-left: auto;
+
+    @media (max-width: 768px) {
+      max-width: 100%;
+      margin: 1rem auto;
+    }
+
+    h3 {
+      margin-bottom: 1rem;
+      font-size: 1.2rem;
+    }
+
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid #334155;
+
+      &.shipping {
+        color: #10b981;
+      }
+
+      &.total {
+        font-size: 1.1rem;
+        font-weight: bold;
+        border-top: 2px solid #3b82f6;
+        margin-top: 0.5rem;
+        padding-top: 0.5rem;
+      }
+    }
+
+    .btn-proceed {
+      width: 100%;
+      padding: 1rem;
+      background: linear-gradient(135deg, #3b82f6, #2563eb);
+      color: white;
+      border: none;
+      border-radius: 0.75rem;
+      font-weight: 700;
+      font-size: 1.1rem;
+      cursor: pointer;
+      margin-top: 1rem;
+      transition: transform 0.2s;
+
+      &:hover {
+        transform: translateY(-2px);
+      }
+    }
+  }
+
+  .continue-shopping {
+    text-align: center;
+    margin-top: 2rem;
+
+    .btn-continue {
+      display: inline-block;
+      padding: 1rem 2rem;
+      background: #3b82f6;
+      color: white;
+      text-decoration: none;
+      border-radius: 0.75rem;
+      font-weight: 600;
+      transition: background 0.2s;
+
+      &:hover {
+        background: #2563eb;
+      }
+    }
+  }
+
+  .loading-container {
+    text-align: center;
+    padding: 3rem;
+
+    p {
+      color: #94a3b8;
+      font-size: 1.2rem;
+    }
+  }
+}

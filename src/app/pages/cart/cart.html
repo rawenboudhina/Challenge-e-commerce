@@ -1,1 +1,73 @@
-<p>cart works!</p>
+<div class="cart-page" *ngIf="!loading; else loadingTemplate">
+  <div class="container">
+    <!-- Header -->
+    <div class="cart-header">
+      <h1>Mon Panier</h1>
+      <p *ngIf="cartItems.length === 0">Votre panier est vide.</p>
+      <p *ngIf="cartItems.length > 0">Vous avez {{ cartItems.length }} article(s) dans votre panier.</p>
+    </div>
+
+    <!-- Liste des articles -->
+    <div class="cart-items" *ngIf="cartItems.length > 0">
+      @for (item of cartItems; track item.product.id) {
+        <div class="cart-item">
+          <img [src]="item.product.image || '/assets/fallback.jpg'" [alt]="item.product.title" class="item-image">
+          <div class="item-details">
+            <h3 class="item-title">{{ item.product.title }}</h3>
+            <p class="item-description">{{ item.product.description | slice:0:100 }}...</p>
+            <!-- Caractéristiques simples (ex. specs si disponibles) -->
+            <div class="item-features" *ngIf="getProductSpecs(item.product).length > 0">
+              @for (spec of getProductSpecs(item.product) | slice:0:3; track spec.key) {
+                <span class="feature">{{ spec.key }}: {{ spec.value }}</span>
+              }
+            </div>
+          </div>
+          <div class="item-price">
+            <span class="price-unit">{{ item.product.price | currency:'EUR' }}</span>
+          </div>
+          <div class="item-quantity">
+            <button (click)="decreaseQuantity(item.product.id)" class="qty-btn">-</button>
+            <input type="number" [(ngModel)]="item.quantity" min="1" (change)="updateQuantity(item.product.id, item.quantity)" class="qty-input">
+            <button (click)="increaseQuantity(item.product.id)" class="qty-btn">+</button>
+          </div>
+          <div class="item-subtotal">
+            {{ getSubtotal(item) | currency:'EUR' }}
+          </div>
+          <button class="btn-remove" (click)="removeFromCart(item.product.id)">Supprimer</button>
+        </div>
+      }
+    </div>
+
+    <!-- Récapitulatif -->
+    <div class="cart-summary" *ngIf="cartItems.length > 0">
+      <div class="summary-section">
+        <h3>Récapitulatif</h3>
+        <div class="summary-row">
+          <span>Sous-total</span>
+          <span>{{ getSubtotalAll() | currency:'EUR' }}</span>
+        </div>
+        <div class="summary-row shipping">
+          <span>Frais de livraison</span>
+          <span>{{ getShippingFee() | currency:'EUR' }}</span>
+        </div>
+        <div class="summary-row total">
+          <span>Total</span>
+          <strong>{{ getTotal() | currency:'EUR' }}</strong>
+        </div>
+      </div>
+      <button class="btn-proceed" (click)="proceedToCheckout()">Procéder au paiement</button>
+    </div>
+
+    <!-- Bouton continuer shopping -->
+    <div class="continue-shopping" *ngIf="cartItems.length === 0">
+      <a routerLink="/products" class="btn-continue">Continuer mes achats</a>
+    </div>
+  </div>
+</div>
+
+<!-- Loading -->
+<ng-template #loadingTemplate>
+  <div class="loading-container">
+    <p>Chargement du panier...</p>
+  </div>
+</ng-template>

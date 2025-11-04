@@ -1,67 +1,71 @@
-// product-card.component.ts
-import { Component, Input } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, Input, Output, EventEmitter, inject } from '@angular/core';
+import { CommonModule, CurrencyPipe } from '@angular/common';
+import { RouterModule, Router } from '@angular/router';
 import { Product } from '../../../core/models/product.model';
+import { WishlistService } from '../../../core/services/wishlist';
+import { CartService } from '../../../core/services/cart';
 
 @Component({
   selector: 'app-product-card',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, CurrencyPipe, RouterModule],
   templateUrl: './product-card.html',
   styleUrls: ['./product-card.scss']
 })
 export class ProductCardComponent {
   @Input() product!: Product;
+  @Output() addToCart = new EventEmitter<Product>();
+  @Output() quickBuy = new EventEmitter<Product>();
+
+  private wishlistService = inject(WishlistService);
+  private cartService = inject(CartService);
+  private router = inject(Router);
+
+  // Vérifie si le produit est dans la wishlist
+  get isWishlisted(): boolean {
+    return this.wishlistService.isInWishlist(this.product.id);
+  }
 
   get originalPrice(): number {
-    if (this.product.discountPercentage) {
+    if (this.product.discountPercentage && this.product.discountPercentage > 0) {
       return Math.round(this.product.price / (1 - this.product.discountPercentage / 100));
     }
     return this.product.price;
   }
 
-  getStars(): any[] {
-    const stars = [];
-    const rating = this.product.rating?.rate || 0;
-    const floorRating = Math.floor(rating);
-    const fractional = rating - floorRating;
-
-    for (let i = 1; i <= 5; i++) {
-      let isFilled = false;
-      let isHalf = false;
-      let isEmpty = true;
-
-      if (i <= floorRating) {
-        isFilled = true;
-        isEmpty = false;
-      } else if (i === floorRating + 1 && fractional > 0) {
-        isHalf = true;
-        isEmpty = false;
-      }
-
-      stars.push({ 
-        index: i, 
-        value: i,
-        isFilled,
-        isHalf,
-        isEmpty
-      });
-    }
-    return stars;
+getStars(): { index: number; isFilled: boolean; isHalf: boolean; isEmpty: boolean; value: number }[] {
+  const rating = this.product.rating?.rate || 0;
+  const stars = [];
+  for (let i = 1; i <= 5; i++) {
+    const value = i;
+    const isFilled = i <= Math.floor(rating);
+    const isHalf = i === Math.ceil(rating) && rating % 1 >= 0.5;
+    const isEmpty = i > Math.ceil(rating);
+    stars.push({ index: i - 1, isFilled, isHalf, isEmpty, value });
+  }
+  return stars;
+}
+  onAddToCart() {
+    if (!this.product.stock || this.product.stock <= 0) return;
+    this.cartService.addToCart(this.product);
+    this.addToCart.emit(this.product);
   }
 
-  addToCart() {
-    // Implement add to cart logic
-    console.log('Added to cart:', this.product.title);
+  onToggleWishlist($event: Event) {
+    $event.stopPropagation();
+    this.wishlistService.toggle(this.product);
   }
 
-  toggleWishlist() {
-    // Implement wishlist logic
-    console.log('Toggled wishlist for:', this.product.title);
+  onQuickBuy($event: Event) {
+    $event.stopPropagation();
+    if (!this.product.stock || this.product.stock <= 0) return;
+
+    this.cartService.addToCart(this.product);
+    this.quickBuy.emit(this.product);
+    this.router.navigate(['/cart']);
   }
 
-  quickBuy() {
-    // Implement quick buy logic
-    console.log('Quick buy:', this.product.title);
+  onProductClick() {
+    this.router.navigate(['/product', this.product.id]);
   }
 }

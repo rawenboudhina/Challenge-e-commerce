@@ -1,1 +1,105 @@
-<p>register works!</p>
+<!-- pages/register/register.html -->
+<div class="auth-page">
+  <div class="container">
+    <div class="auth-card">
+      <h1>Inscription</h1>
+      <p>Créez votre compte TechZone</p>
+      <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="firstName">Prénom</label>
+            <input
+              type="text"
+              id="firstName"
+              formControlName="firstName"
+              placeholder="Votre prénom"
+              [class.error]="f['firstName'].invalid && f['firstName'].touched"
+            >
+            <div *ngIf="f['firstName'].invalid && f['firstName'].touched" class="error-msg">
+              <span *ngIf="f['firstName'].errors?.['required']">Prénom requis</span>
+              <span *ngIf="f['firstName'].errors?.['minlength']">Minimum 2 caractères</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="lastName">Nom</label>
+            <input
+              type="text"
+              id="lastName"
+              formControlName="lastName"
+              placeholder="Votre Nom"
+              [class.error]="f['lastName'].invalid && f['lastName'].touched"
+            >
+            <div *ngIf="f['lastName'].invalid && f['lastName'].touched" class="error-msg">
+              <span *ngIf="f['lastName'].errors?.['required']">Nom requis</span>
+              <span *ngIf="f['lastName'].errors?.['minlength']">Minimum 2 caractères</span>
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input
+            type="email"
+            id="email"
+            formControlName="email"
+            placeholder="votre@email.com"
+            [class.error]="f['email'].invalid && f['email'].touched"
+          >
+          <div *ngIf="f['email'].invalid && f['email'].touched" class="error-msg">
+            <span *ngIf="f['email'].errors?.['required']">Email requis</span>
+            <span *ngIf="f['email'].errors?.['email']">Email invalide</span>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="password">Mot de passe</label>
+            <input
+              type="password"
+              id="password"
+              formControlName="password"
+              placeholder="••••••••"
+              [class.error]="f['password'].invalid && f['password'].touched"
+            >
+            <div *ngIf="f['password'].invalid && f['password'].touched" class="error-msg">
+              <span *ngIf="f['password'].errors?.['required']">Mot de passe requis</span>
+              <span *ngIf="f['password'].errors?.['minlength']">Minimum 6 caractères</span>
+            </div>
+          </div>
+      <div class="form-group">
+  <label for="confirmPassword">Confirmer le mot de passe</label>
+  <input type="password" id="confirmPassword" formControlName="confirmPassword" placeholder="••••••••"
+         [class.error]="f['confirmPassword'].invalid && f['confirmPassword'].touched">
+  <div *ngIf="f['confirmPassword'].invalid && f['confirmPassword'].touched" class="error-msg">
+    <span *ngIf="f['confirmPassword'].errors?.['required']">Confirmation requise</span>
+  </div>
+  <!-- Erreur de mismatch au niveau du groupe -->
+  <div *ngIf="registerForm.errors?.['mismatch'] && f['confirmPassword'].touched" class="error-msg">
+    <span>Les mots de passe ne correspondent pas</span>
+  </div>
+</div>
+        
+        </div>
+        <div class="form-group">
+          <label for="address">Adresse</label>
+          <textarea
+            id="address"
+            formControlName="address"
+            rows="3"
+            placeholder="Votre adresse complète"
+            [class.error]="f['address'].invalid && f['address'].touched"
+          ></textarea>
+          <div *ngIf="f['address'].invalid && f['address'].touched" class="error-msg">
+            <span *ngIf="f['address'].errors?.['required']">Adresse requise</span>
+            <span *ngIf="f['address'].errors?.['minlength']">Minimum 5 caractères</span>
+          </div>
+        </div>
+        <div *ngIf="errorMessage" class="error-alert">{{ errorMessage }}</div>
+        <button type="submit" [disabled]="registerForm.invalid || loading" class="btn-submit">
+          {{ loading ? 'Inscription...' : 'S\'inscrire' }}
+        </button>
+      </form>
+      <div class="auth-link">
+        Déjà un compte ? <a routerLink="/login">Se connecter</a>
+      </div>
+    </div>
+  </div>
+</div>
