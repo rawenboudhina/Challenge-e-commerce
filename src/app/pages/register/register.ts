@@ -1,62 +1,80 @@
-import { Component } from '@angular/core';
+// src/app/features/auth/register.component.ts
+import { Component ,inject} from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
-import { RouterModule } from '@angular/router';
-import { Router } from '@angular/router';
-// Import your AuthService if needed
+import { ReactiveFormsModule, FormBuilder, Validators, AbstractControl } from '@angular/forms';
+import { Router, RouterModule } from '@angular/router';
+import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule], // AJOUTÉ
   templateUrl: './register.html',
   styleUrls: ['./register.scss']
 })
-export class Register {
-  registerForm: FormGroup;
+export class RegisterComponent {
+  private fb = inject(FormBuilder);
+  registerForm = this.fb.group({
+    firstName: ['', [Validators.required, Validators.minLength(2)]],
+    lastName: ['', [Validators.required, Validators.minLength(2)]],
+    email: ['', [Validators.required, Validators.email]],
+    password: ['', [Validators.required, Validators.minLength(6)]],
+    confirmPassword: ['', [Validators.required]],
+    address: ['', [Validators.required, Validators.minLength(5)]]
+  }, { validators: this.passwordMatchValidator });
+
   errorMessage = '';
   loading = false;
 
-  constructor(private fb: FormBuilder, private router: Router) {
-    this.registerForm = this.fb.group({
-      firstName: ['', [Validators.required, Validators.minLength(2)]],
-      lastName: ['', [Validators.required, Validators.minLength(2)]],
-      email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(6)]],
-      confirmPassword: ['', [Validators.required]],
-      address: ['', [Validators.required, Validators.minLength(5)]]
-    }, {
-      validators: this.passwordMatchValidator
-    });
+  constructor(
+    private authService: AuthService,
+    private router: Router
+  ) {}
+
+  passwordMatchValidator(group: AbstractControl) {
+    const pwd = group.get('password')?.value;
+    const confirm = group.get('confirmPassword')?.value;
+    return pwd === confirm ? null : { mismatch: true };
   }
 
-  passwordMatchValidator(group: AbstractControl): ValidationErrors | null {
-    const password = group.get('password')?.value;
-    const confirmPassword = group.get('confirmPassword')?.value;
-    return password === confirmPassword ? null : { mismatch: true };
+  // src/app/pages/register/register.component.ts
+onSubmit() {
+  if (this.registerForm.invalid) {
+    this.errorMessage = 'Veuillez corriger les erreurs.';
+    return;
   }
 
-  onSubmit() {
-    console.log('Form valid?', this.registerForm.valid);
-    console.log('Errors:', this.registerForm.errors);
+  this.loading = true;
+  this.errorMessage = '';
 
-    if (this.registerForm.valid) {
-      this.loading = true;
-      this.errorMessage = '';
+  // Nettoie et garantit que toutes les valeurs sont des strings
+  const raw = this.registerForm.value;
+  const data = {
+    firstName: raw.firstName?.trim() || '',
+    lastName: raw.lastName?.trim() || '',
+    email: raw.email?.trim() || '',
+    password: raw.password || '',
+    address: raw.address?.trim() || ''
+  };
 
-      // Simule une inscription
-      setTimeout(() => {
-        console.log('Inscription OK ! Redirection...');
-        this.loading = false;
-        this.router.navigate(['/login']);
-      }, 1000);
-    } else {
-      this.errorMessage = 'Veuillez corriger les erreurs.';
-      Object.keys(this.registerForm.controls).forEach(key => {
-        this.registerForm.get(key)?.markAsTouched();
-      });
+  // Vérifie qu'aucun champ n'est vide
+  if (!data.firstName || !data.lastName || !data.email || !data.password || !data.address) {
+    this.errorMessage = 'Tous les champs sont obligatoires.';
+    this.loading = false;
+    return;
+  }
+
+  this.authService.register(data).subscribe({
+    next: () => {
+      this.loading = false;
+      this.router.navigate(['/']);
+    },
+    error: (err) => {
+      this.loading = false;
+      this.errorMessage = err.message;
     }
-  }
+  });
+}
 
   get f() { return this.registerForm.controls; }
 }

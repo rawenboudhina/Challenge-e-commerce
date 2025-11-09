@@ -1,31 +1,57 @@
-import { Component, Input, Output, EventEmitter, inject } from '@angular/core';
+// src/app/components/product-card/product-card.component.ts
+import {
+  Component,
+  Input,
+  Output,
+  EventEmitter,
+  inject,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  OnInit,
+  OnDestroy
+} from '@angular/core';
 import { CommonModule, CurrencyPipe } from '@angular/common';
-import { RouterModule, Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { Product } from '../../../core/models/product.model';
-import { WishlistService } from '../../../core/services/wishlist';
-import { CartService } from '../../../core/services/cart';
+import { WishlistService } from '../../../core/services/wishlist.service';
+import { CartService } from '../../../core/services/cart.service';
 
 @Component({
   selector: 'app-product-card',
   standalone: true,
   imports: [CommonModule, CurrencyPipe, RouterModule],
   templateUrl: './product-card.html',
-  styleUrls: ['./product-card.scss']
+  styleUrls: ['./product-card.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ProductCardComponent {
+export class ProductCardComponent implements OnInit, OnDestroy {
   @Input() product!: Product;
   @Output() addToCart = new EventEmitter<Product>();
   @Output() quickBuy = new EventEmitter<Product>();
 
+  // Services
   private wishlistService = inject(WishlistService);
   private cartService = inject(CartService);
   private router = inject(Router);
+  private cdr = inject(ChangeDetectorRef);
 
-  // Vérifie si le produit est dans la wishlist
-  get isWishlisted(): boolean {
-    return this.wishlistService.isInWishlist(this.product.id);
+  // État local
+  isWishlisted = false;
+  private subscription: any;
+
+  ngOnInit(): void {
+    // S'abonne à wishlist$ pour réactivité instantanée
+    this.subscription = this.wishlistService.wishlist$.subscribe(ids => {
+      this.isWishlisted = ids.includes(this.product.id);
+      this.cdr.markForCheck(); // Force mise à jour avec OnPush
+    });
   }
 
+  ngOnDestroy(): void {
+    this.subscription?.unsubscribe();
+  }
+
+  // === PRIX ===
   get originalPrice(): number {
     if (this.product.discountPercentage && this.product.discountPercentage > 0) {
       return Math.round(this.product.price / (1 - this.product.discountPercentage / 100));
@@ -33,39 +59,49 @@ export class ProductCardComponent {
     return this.product.price;
   }
 
-getStars(): { index: number; isFilled: boolean; isHalf: boolean; isEmpty: boolean; value: number }[] {
-  const rating = this.product.rating?.rate || 0;
-  const stars = [];
-  for (let i = 1; i <= 5; i++) {
-    const value = i;
-    const isFilled = i <= Math.floor(rating);
-    const isHalf = i === Math.ceil(rating) && rating % 1 >= 0.5;
-    const isEmpty = i > Math.ceil(rating);
-    stars.push({ index: i - 1, isFilled, isHalf, isEmpty, value });
+  // === ÉTOILES ===
+  getStars(): { index: number; isFilled: boolean; isHalf: boolean; isEmpty: boolean; value: number }[] {
+    const rating = this.product.rating?.rate || 0;
+    const stars = [];
+    for (let i = 1; i <= 5; i++) {
+      const value = i;
+      const isFilled = i <= Math.floor(rating);
+      const isHalf = i === Math.ceil(rating) && rating % 1 >= 0.5;
+      const isEmpty = i > Math.ceil(rating);
+      stars.push({ index: i - 1, isFilled, isHalf, isEmpty, value });
+    }
+    return stars;
   }
-  return stars;
-}
-  onAddToCart() {
+
+  // === ACTIONS ===
+  onAddToCart(): void {
     if (!this.product.stock || this.product.stock <= 0) return;
     this.cartService.addToCart(this.product);
     this.addToCart.emit(this.product);
   }
 
-  onToggleWishlist($event: Event) {
+  onToggleWishlist($event: Event): void {
     $event.stopPropagation();
+
+    // CORRIGÉ : Utilise currentUserId (public getter)
+    if (!this.wishlistService.currentUserId) {
+      this.router.navigate(['/login'], { queryParams: { returnUrl: this.router.url } });
+      return;
+    }
+
     this.wishlistService.toggle(this.product);
+    // Réactivité gérée via wishlist$
   }
 
-  onQuickBuy($event: Event) {
+  onQuickBuy($event: Event): void {
     $event.stopPropagation();
     if (!this.product.stock || this.product.stock <= 0) return;
-
     this.cartService.addToCart(this.product);
     this.quickBuy.emit(this.product);
     this.router.navigate(['/cart']);
   }
 
-  onProductClick() {
+  onProductClick(): void {
     this.router.navigate(['/product', this.product.id]);
   }
 }

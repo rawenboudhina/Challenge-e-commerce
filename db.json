@@ -1,0 +1,93 @@
+{
+  "users": [
+    {
+      "id": "1762353008395",
+      "email": "Rourou@gmail.com",
+      "username": "Rourou",
+      "firstName": "Rourou",
+      "lastName": "Rourou",
+      "address": "Rourou1",
+      "password": "Rourou"
+    },
+    {
+      "id": "1762368754079",
+      "email": "ahmed@gmail.com",
+      "username": "ahmed",
+      "firstName": "ahmed",
+      "lastName": "ahmed",
+      "address": "Mateur",
+      "password": "ahmed123"
+    }
+  ],
+  "wishlists": [
+    {
+      "id": "1",
+      "userId": "1762353008395",
+      "products": [
+        182,
+        183,
+        184,
+        181,
+        179,
+        47,
+        180
+      ]
+    },
+    {
+      "id": "2",
+      "userId": "1762368754079",
+      "products": [
+        47,
+        7,
+        43,
+        9,
+        8,
+        178
+      ]
+    }
+  ],
+  "carts": [
+    {
+      "id": "1",
+      "userId": 1,
+      "items": [
+        {
+          "productId": 1,
+          "quantity": 2
+        },
+        {
+          "productId": 3,
+          "quantity": 1
+        }
+      ]
+    },
+    {
+      "id": "2dd2",
+      "userId": "1762368754079",
+      "items": []
+    },
+    {
+      "id": "3393",
+      "userId": "1762368754079",
+      "items": []
+    },
+    {
+      "id": "8b37",
+      "userId": "1762353008395",
+      "items": [
+        {
+          "productId": 47,
+          "quantity": 1
+        },
+        {
+          "productId": 46,
+          "quantity": 1
+        },
+        {
+          "productId": 9,
+          "quantity": 1
+        }
+      ]
+    }
+  ]
+}

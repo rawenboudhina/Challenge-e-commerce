@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, delay, map, of } from 'rxjs';
 import { Product } from '../models/product.model';
-
+import { Category } from '../models/category.model';
 @Injectable({
   providedIn: 'root'
 })
@@ -157,6 +157,12 @@ searchProducts(query: string = '', category?: string): Observable<Product[]> {
       return this.transformProducts(filtered);
     })
   );
+}
+// product.service.ts
+
+// Ajouter cette méthode publique
+getCategoryList(): Observable<any[]> {
+  return of(this.categories).pipe(delay(300));
 }
   
 }

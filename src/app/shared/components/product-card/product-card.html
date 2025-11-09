@@ -1,71 +1,75 @@
-<div class="product-card" 
-     (click)="onProductClick()" 
-     role="button" 
+<div class="product-card"
+     (click)="onProductClick()"
+     role="button"
      tabindex="0"
      [class.out-of-stock]="!product.stock || product.stock <= 0"
      style="cursor: pointer;">
-  
+
+  <!-- IMAGE + BADGES -->
   <div class="product-image-wrapper">
     <img [src]="product.image" [alt]="product.title" class="product-image" loading="lazy">
-    
+
     @if (product.discountPercentage && product.discountPercentage > 20) {
       <span class="badge badge-discount">-{{ product.discountPercentage }}%</span>
     }
     @if (product.isNew) {
       <span class="badge badge-new">Nouveau</span>
     }
-    
+
     <div class="image-overlay"></div>
   </div>
 
+  <!-- CORPS -->
   <div class="card-body">
     <h3 class="card-title">{{ product.title }}</h3>
-    
+
     <div class="product-rating">
       <div class="stars">
         @for (star of getStars(); track star.index) {
-          <span
-            class="star"
-            [class.filled]="star.isFilled"
-            [class.half]="star.isHalf"
-            [class.empty]="star.isEmpty"
-            [attr.data-rating]="star.value">
+          <span class="star"
+                [class.filled]="star.isFilled"
+                [class.half]="star.isHalf"
+                [class.empty]="star.isEmpty">
             ★
           </span>
         }
       </div>
       <span class="rating-count">({{ product.rating?.count || 0 }})</span>
     </div>
-    
+
     <div class="price-container">
-      <span *ngIf="product.discountPercentage" class="original-price">{{ originalPrice | currency:'EUR':'symbol':'1.2-2' }}</span>
-      <span class="current-price">{{ product.price | currency:'EUR':'symbol':'1.2-2' }}</span>
-      <span *ngIf="product.discountPercentage" class="discount-badge">-{{ product.discountPercentage }}%</span>
+      <span *ngIf="product.discountPercentage" class="original-price">
+        {{ originalPrice | currency:'EUR':'symbol':'1.2-2' }}
+      </span>
+      <span class="current-price">
+        {{ product.price | currency:'EUR':'symbol':'1.2-2' }}
+      </span>
     </div>
-    
-    <button class="btn-add-to-cart" 
-            (click)="onAddToCart(); $event.stopPropagation()" 
-            [disabled]="!product.stock || product.stock <= 0">
-      Ajouter au panier
-    </button>
-    
+
+  <button class="btn-add-to-cart"
+        (click)="onAddToCart(); $event.stopPropagation(); $event.preventDefault()"
+        [disabled]="!product.stock || product.stock <= 0">
+  Ajouter au panier
+</button>
+
+
+
+    <!-- ACTIONS RAPIDES -->
     <div class="quick-actions">
-     <button
-  class="wishlist-btn"
-  (click)="onToggleWishlist($event)"
-  [class.active]="isWishlisted">
-  <svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5">
+      <button class="wishlist-btn" 
+        (click)="onToggleWishlist($event)" 
+        [class.active]="isWishlisted"
+        [title]="isWishlisted ? 'Retirer de la wishlist' : 'Ajouter à la wishlist'">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
     <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
   </svg>
 </button>
 
-<button 
-  class="quick-buy-btn"
-  (click)="onQuickBuy($event)"
-  [disabled]="!product.stock || product.stock <= 0">
+     <button class="quick-buy-btn"
+        (click)="onQuickBuy($event); $event.stopPropagation(); $event.preventDefault()"
+        [disabled]="!product.stock || product.stock <= 0">
   Achat rapide
 </button>
-    
     </div>
   </div>
 </div>

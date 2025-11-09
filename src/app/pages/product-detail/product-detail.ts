@@ -1,13 +1,14 @@
-import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+// src/app/pages/product-detail/product-detail.component.ts
+import { Component, OnInit, OnDestroy, inject, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ProductService } from '../../core/services/product';
-import { CartService } from '../../core/services/cart';
+import { CartService } from '../../core/services/cart.service';
+import { WishlistService } from '../../core/services/wishlist.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ProductCardComponent } from '../../shared/components/product-card/product-card';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { Product } from '../../core/models/product.model';
-import { Router } from '@angular/router';
 
 interface Review {
   user: string;
@@ -17,7 +18,6 @@ interface Review {
   helpful?: number;
   helpfulClicked?: boolean;
 }
-
 interface Spec {
   key: string;
   value: string;
@@ -26,15 +26,22 @@ interface Spec {
 @Component({
   selector: 'app-product-detail',
   standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    ProductCardComponent,
-  ],
+  imports: [CommonModule, FormsModule, ProductCardComponent],
   templateUrl: './product-detail.html',
-  styleUrls: ['./product-detail.scss']
+  styleUrls: ['./product-detail.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ProductDetailComponent implements OnInit {
+export class ProductDetailComponent implements OnInit, OnDestroy {
+  // Services
+  private route = inject(ActivatedRoute);
+  private productService = inject(ProductService);
+  private cartService = inject(CartService);
+  private wishlistService = inject(WishlistService);
+  private sanitizer = inject(DomSanitizer);
+  private router = inject(Router);
+  private cdr = inject(ChangeDetectorRef);
+
+  // État
   product: Product | null = null;
   similarProducts: Product[] = [];
   quantity = 1;
@@ -42,57 +49,62 @@ export class ProductDetailComponent implements OnInit {
   loading = true;
   showReviewForm = false;
   newReview: Partial<Review> = { user: '', rating: 0, comment: '', date: '' };
-  private allReviews: Review[] = []; // Toutes les avis pour pagination
+  private allReviews: Review[] = [];
   private loadedReviewsCount = 0;
-  private reviewsPerPage = 5; // Augmenté à 5 pour plus de variété initiale
+  private reviewsPerPage = 5;
 
-  constructor(
-    private route: ActivatedRoute,
-    private productService: ProductService,
-    public cartService: CartService,
-    private sanitizer: DomSanitizer,
-    private router: Router
-  ) {}
+  // Wishlist réactive
+  isInWishlist = false;
+  private wishlistSubscription: any;
+
+  // === WISHLIST : DÉPLACÉE EN HAUT ===
+  private updateWishlistStatus(): void {
+    if (!this.product) return;
+    const wishlistIds = this.wishlistService.getAllProductIds();
+    this.isInWishlist = wishlistIds.includes(this.product.id);
+    this.cdr.markForCheck();
+  }
 
   ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.loadProduct(+id);
     }
+
+    // S'abonne à wishlist$
+    this.wishlistSubscription = this.wishlistService.wishlist$.subscribe(ids => {
+      if (this.product) {
+        this.isInWishlist = ids.includes(this.product.id);
+        this.cdr.markForCheck();
+      }
+    });
+
+    // Synchronise si produit déjà chargé
+    setTimeout(() => this.updateWishlistStatus(), 0);
   }
 
-  decreaseQuantity(): void {
-    this.quantity = Math.max(1, this.quantity - 1);
+  ngOnDestroy() {
+    this.wishlistSubscription?.unsubscribe();
   }
 
-  increaseQuantity(): void {
-    if (this.product) {
-      this.quantity = Math.min(this.getProductStock(), this.quantity + 1);
+  // === WISHLIST ===
+  toggleWishlist(): void {
+    if (!this.product) return;
+    if (!this.wishlistService.currentUserId) {
+      this.router.navigate(['/login'], { queryParams: { returnUrl: this.router.url } });
+      return;
     }
+    this.wishlistService.toggle(this.product);
   }
 
-  validateQuantity(): void {
-    if (this.quantity < 1) {
-      this.quantity = 1;
-    } else if (this.product && this.quantity > this.getProductStock()) {
-      this.quantity = this.getProductStock();
-    }
-    this.quantity = Math.floor(this.quantity);
-  }
-
-  getProductStock(): number {
-    return this.product?.stock ?? 0;
-  }
-
+  // === CHARGEMENT PRODUIT ===
   loadProduct(id: number) {
     this.loading = true;
     this.productService.getProductById(id).subscribe({
       next: (product: Product) => {
-        console.log('Produit chargé :', product);
         const enhancedProduct = {
           ...product,
-          // Specs maintenant dynamiques depuis l'API ; supprimer les hardcoded si l'API les fournit
-          specs: (product as any).specs || [], // Assumer que l'API fournit les specs
+          specs: (product as any).specs || [],
         };
         this.product = enhancedProduct;
         this.selectedImage = 0;
@@ -103,21 +115,11 @@ export class ProductDetailComponent implements OnInit {
         }
         (this.product as any).images = images;
 
-        // Initialiser les avis (simuler une liste plus grande pour pagination)
-        this.allReviews = (product as any).reviews || [
-          { user: 'Jean D.', rating: 5, comment: 'Excellent produit !', date: '2025-10-15', helpful: 3, helpfulClicked: false },
-          { user: 'Marie L.', rating: 4, comment: 'Bonne qualité.', date: '2025-10-10', helpful: 1, helpfulClicked: false },
-          { user: 'Paul M.', rating: 5, comment: 'Parfait !', date: '2025-10-05', helpful: 2, helpfulClicked: false },
-          { user: 'Sophie K.', rating: 3, comment: 'Correct, mais pourrait être mieux.', date: '2025-10-01', helpful: 0, helpfulClicked: false },
-          { user: 'Luc T.', rating: 5, comment: 'Super rapport qualité-prix.', date: '2025-09-28', helpful: 4, helpfulClicked: false },
-          { user: 'Anna R.', rating: 2, comment: 'Déçu par la durabilité.', date: '2025-09-25', helpful: 1, helpfulClicked: false },
-          { user: 'Marc B.', rating: 4, comment: 'Fonctionne bien au quotidien.', date: '2025-09-20', helpful: 2, helpfulClicked: false },
-          { user: 'Eva S.', rating: 5, comment: 'Recommandé à 100%.', date: '2025-09-15', helpful: 5, helpfulClicked: false }
-        ] as Review[];
+        // Avis simulés
+        this.allReviews = (product as any).reviews || this.generateMockReviews();
         this.loadedReviewsCount = this.reviewsPerPage;
         (this.product as any).reviews = this.allReviews.slice(0, this.reviewsPerPage);
 
-        // Calculer la note globale à partir des avis (si pas fournie par API)
         if (!this.product?.rating?.rate) {
           this.product = {
             ...this.product,
@@ -127,21 +129,49 @@ export class ProductDetailComponent implements OnInit {
 
         this.loadSimilarProducts();
         this.loading = false;
+        this.cdr.markForCheck();
+
+        // SYNCHRONISE LE CŒUR
+        this.updateWishlistStatus();
       },
       error: (error: any) => {
         console.error('Erreur chargement produit :', error);
         this.loading = false;
+        this.cdr.markForCheck();
       }
     });
   }
 
-  // Nouveau : Calcul de la note moyenne
-  private calculateOverallRating(reviews: Review[]): number {
-    if (!reviews.length) return 0;
-    const avg = reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length;
-    return Math.round(avg * 10) / 10; // Arrondi à 1 décimale (ex. 4.5)
+  // === MOCKS ===
+  private generateMockReviews(): Review[] {
+    return [
+      { user: 'Jean D.', rating: 5, comment: 'Excellent produit !', date: '2025-10-15', helpful: 3 },
+      { user: 'Marie L.', rating: 4, comment: 'Bonne qualité.', date: '2025-10-10', helpful: 1 },
+      { user: 'Paul M.', rating: 5, comment: 'Parfait !', date: '2025-10-05', helpful: 2 },
+      { user: 'Sophie K.', rating: 3, comment: 'Correct, mais pourrait être mieux.', date: '2025-10-01', helpful: 0 },
+      { user: 'Luc T.', rating: 5, comment: 'Super rapport qualité-prix.', date: '2025-09-28', helpful: 4 },
+    ].map(r => ({ ...r, helpfulClicked: false }));
   }
 
+  // === QUANTITÉ ===
+  decreaseQuantity(): void {
+    this.quantity = Math.max(1, this.quantity - 1);
+  }
+  increaseQuantity(): void {
+    if (this.product) {
+      this.quantity = Math.min(this.getProductStock(), this.quantity + 1);
+    }
+  }
+  validateQuantity(): void {
+    if (this.quantity < 1) this.quantity = 1;
+    else if (this.product && this.quantity > this.getProductStock()) this.quantity = this.getProductStock();
+    this.quantity = Math.floor(this.quantity);
+  }
+  getProductStock(): number {
+    return this.product?.stock ?? 0;
+  }
+
+  // === SIMILAIRES ===
   loadSimilarProducts() {
     if (!this.product?.category) return;
     this.productService.searchProducts('', this.product.category).subscribe({
@@ -149,17 +179,31 @@ export class ProductDetailComponent implements OnInit {
         this.similarProducts = products
           .filter((p: Product) => p.id !== this.product?.id)
           .slice(0, 4);
-      },
-      error: (error: any) => {
-        console.error('Erreur similaires :', error);
+        this.cdr.markForCheck();
       }
     });
   }
 
+  // === PRIX ===
+  get originalPrice(): number {
+    if (this.product?.discountPercentage && this.product.discountPercentage > 0) {
+      return Math.round(this.product.price / (1 - this.product.discountPercentage / 100));
+    }
+    return this.product?.price || 0;
+  }
+  get savings(): number {
+    return this.originalPrice - (this.product?.price || 0);
+  }
+
+  // === IMAGES ===
   selectImage(index: number) {
     this.selectedImage = index;
   }
+  onImageError(event: any): void {
+    (event.target as HTMLImageElement).src = '/assets/fallback-image.jpg';
+  }
 
+  // === PANIER ===
   addToCart() {
     if (this.product && this.quantity > 0) {
       this.cartService.addToCart(this.product, this.quantity);
@@ -167,65 +211,46 @@ export class ProductDetailComponent implements OnInit {
     }
   }
 
+  // === STOCK ===
   get inStock(): boolean {
     return this.getProductStock() > 0;
   }
-
   get stockText(): string {
     const stock = this.getProductStock();
     return stock > 0 ? `En stock (${stock} disponibles)` : 'Rupture de stock';
   }
 
+  // === ÉTOILES ===
   get ratingStars(): number[] {
     const rating = this.product?.rating?.rate || 0;
     return Array(5).fill(0).map((_, i) =>
       i < Math.floor(rating) ? 1 : i < rating ? 0.5 : 0
     );
   }
-
-  get safeDescription(): SafeHtml {
-    return this.sanitizer.bypassSecurityTrustHtml(this.product?.description || '');
-  }
-
-  get originalPrice(): number {
-    if (this.product?.discountPercentage && this.product.discountPercentage > 0) {
-      return Math.round(this.product.price / (1 - this.product.discountPercentage / 100));
-    }
-    return this.product?.price || 0;
-  }
-
-  get savings(): number {
-    return this.originalPrice - (this.product?.price || 0);
-  }
-
-  get productSpecs(): Spec[] {
-    return (this.product as any)?.specs || [];
-  }
-
-  get customerReviews(): Review[] {
-    return (this.product as any)?.reviews || [];
-  }
-
-  // Getter pour note overall (utilise la moyenne calculée)
   get overallRating(): number {
     return this.calculateOverallRating(this.customerReviews);
   }
-
   get overallRatingStars(): number[] {
     const rating = this.overallRating;
     return Array(5).fill(0).map((_, i) =>
       i < Math.floor(rating) ? 1 : i < rating ? 0.5 : 0
     );
   }
-
-  // Nouveau : Mini-étoiles pour labels de breakdown
   getMiniStars(stars: number): number[] {
     return Array(5).fill(0).map((_, i) => i < stars ? 1 : 0);
   }
 
-  // Mise à jour de ratingBreakdown pour utiliser tous les avis (pas que loaded)
+  // === AVIS ===
+  private calculateOverallRating(reviews: Review[]): number {
+    if (!reviews.length) return 0;
+    const avg = reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length;
+    return Math.round(avg * 10) / 10;
+  }
+  get customerReviews(): Review[] {
+    return (this.product as any)?.reviews || [];
+  }
   get ratingBreakdown(): { stars: number; percentage: number }[] {
-    const reviews = this.allReviews; // Utilise TOUS les avis pour breakdown complet
+    const reviews = this.allReviews;
     if (!reviews.length) return [];
     const counts: { [key: number]: number } = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0};
     reviews.forEach(r => counts[r.rating]++);
@@ -235,82 +260,79 @@ export class ProductDetailComponent implements OnInit {
         stars: +starsStr,
         percentage: total > 0 ? Math.round((count / total) * 100) : 0
       }))
-      .reverse(); // 5 étoiles en premier
+      .reverse();
+  }
+  get hasMoreReviews(): boolean {
+    return this.loadedReviewsCount < this.allReviews.length;
+  }
+  loadMoreReviews(): void {
+    this.loadedReviewsCount += this.reviewsPerPage;
+    (this.product as any).reviews = this.allReviews.slice(0, this.loadedReviewsCount);
+    this.cdr.markForCheck();
   }
 
-  onImageError(event: any): void {
-    (event.target as HTMLImageElement).src = '/assets/fallback-image.jpg';
-  }
-
-  toggleWishlist(): void {
-    console.log('Toggle wishlist for', this.product?.title);
-  }
-
-  get isInWishlist(): boolean {
-    return false;
-  }
-
-  notifyWhenAvailable(): void {
-    alert('Notification configurée pour restock !');
-  }
-
+  // === FORMULAIRE AVIS ===
   openReviewModal(): void {
     this.showReviewForm = true;
     this.newReview = { user: '', rating: 0, comment: '', date: new Date().toISOString().slice(0, 10) };
   }
-
   setReviewRating(rating: number): void {
     this.newReview.rating = rating;
   }
-
   cancelReview(): void {
     this.showReviewForm = false;
     this.newReview = { user: '', rating: 0, comment: '', date: '' };
   }
-
   submitReview(): void {
-    const user = this.newReview.user ?? '';
-    const comment = this.newReview.comment ?? '';
-    const rating = this.newReview.rating ?? 0;
-    if (user && comment && rating > 0) {
+    const user = this.newReview.user?.trim();
+    const comment = this.newReview.comment?.trim();
+    const rating = this.newReview.rating;
+    if (user && comment && rating && rating > 0) {
       const fullReview: Review = {
-        ...this.newReview as Review,
         user,
-        comment,
         rating,
+        comment,
+        date: this.newReview.date || new Date().toISOString().slice(0, 10),
         helpful: 0,
         helpfulClicked: false
       };
-      this.allReviews.unshift(fullReview); // Ajouter au début
+      this.allReviews.unshift(fullReview);
       this.loadedReviewsCount = Math.min(this.allReviews.length, this.loadedReviewsCount + 1);
       (this.product as any).reviews = this.allReviews.slice(0, this.loadedReviewsCount);
       this.showReviewForm = false;
       this.newReview = { user: '', rating: 0, comment: '', date: '' };
       alert('Avis ajouté avec succès !');
+      this.cdr.markForCheck();
     }
   }
-
   markHelpful(review: Review): void {
     if (!review.helpfulClicked) {
       review.helpful = (review.helpful ?? 0) + 1;
       review.helpfulClicked = true;
+      this.cdr.markForCheck();
     }
   }
-
-  loadMoreReviews(): void {
-    this.loadedReviewsCount += this.reviewsPerPage;
-    (this.product as any).reviews = this.allReviews.slice(0, this.loadedReviewsCount);
+  getStarsForReview(rating: number): number[] {
+    return Array(5).fill(0).map((_, i) => i < rating ? 1 : 0);
   }
 
-  get hasMoreReviews(): boolean {
-    return this.loadedReviewsCount < this.allReviews.length;
-  }
-
+  // === SIMILAIRES ===
   onSimilarProductAddToCart(product: Product): void {
     this.cartService.addToCart(product, 1);
   }
 
-  getStarsForReview(rating: number): number[] {
-    return Array(5).fill(0).map((_, i) => i < rating ? 1 : 0);
+  // === DESCRIPTION SÉCURISÉE ===
+  get safeDescription(): SafeHtml {
+    return this.sanitizer.bypassSecurityTrustHtml(this.product?.description || '');
+  }
+  get
+
+ productSpecs(): Spec[] {
+    return (this.product as any)?.specs || [];
+  }
+
+  // === OUT OF STOCK ===
+  notifyWhenAvailable(): void {
+    alert('Vous serez notifié dès le retour en stock !');
   }
 }

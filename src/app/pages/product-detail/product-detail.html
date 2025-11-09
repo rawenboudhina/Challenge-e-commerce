@@ -63,9 +63,15 @@
             <button class="btn-add" (click)="addToCart()" [disabled]="quantity < 1">
               Ajouter au panier
             </button>
-            <button class="btn-wishlist" (click)="toggleWishlist()" [attr.aria-label]="'Retirer de la wishlist'">
-              {{ isInWishlist ? '❤️ Retirer' : '🤍 Ajouter' }} à la liste
-            </button>
+            <button class="btn-wishlist" 
+        (click)="toggleWishlist()" 
+        [class.active]="isInWishlist"
+        [attr.aria-label]="isInWishlist ? 'Retirer de la wishlist' : 'Ajouter à la wishlist'">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+  </svg>
+  <span class="text">{{ isInWishlist ? 'Retirer' : 'Ajouter' }}</span>
+</button>
           </div>
           <div class="out-of-stock" *ngIf="!inStock">
             Produit indisponible. <button class="btn-notify" (click)="notifyWhenAvailable()">Notifier</button>

@@ -1,14 +1,14 @@
 import { Component, OnInit, OnDestroy, HostListener, ElementRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
-import { CartService } from '../../../core/services/cart';
-import { AuthService } from '../../../core/services/auth';
+import { CartService } from '../../../core/services/cart.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { ProductService } from '../../../core/services/product';
 import { FormsModule } from '@angular/forms';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { debounceTime, distinctUntilChanged, switchMap, catchError } from 'rxjs/operators';
 import { Subject, of } from 'rxjs';
-
+import { Category } from '../../../core/models/category.model';
 @Component({
   selector: 'app-header',
   standalone: true,
@@ -32,7 +32,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
   cartItemCount = 0;
   isAuthenticated = false;
   currentUser: any = null;
-  categories: string[] = [];
+  // categories: string[] = [];
+  categories: any[] = []; // Changé de string[] à any[] (ou interface Category)
   isMenuOpen = false;
   isScrolled = false;
   isDesktop = window.innerWidth >= 769;
@@ -58,6 +59,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     private cartService: CartService,
     private authService: AuthService,
     private productService: ProductService,
+  
     private router: Router
   ) {}
 
@@ -75,8 +77,11 @@ export class HeaderComponent implements OnInit, OnDestroy {
     });
 
     // Catégories
-    this.productService.getCategories().subscribe(cats => {
-      this.categories = cats.slice(0, 6);
+  /*   this.productService.getCategories().subscribe(cats => {
+      this.categories = cats;;
+    }); */
+    this.productService.getCategoryList().subscribe(cats => {
+      this.categories = cats; // ← 8 objets complets
     });
 
     // Recherche
@@ -208,9 +213,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.closeMenu();
   }
 
-  formatCategory(slug: string): string {
-    return slug
-      .replace(/-/g, ' ')
-      .replace(/\b\w/g, l => l.toUpperCase());
+formatCategory(category: Category): string {
+    return category.name;
   }
+
 }

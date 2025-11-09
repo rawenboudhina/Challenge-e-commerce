@@ -5,7 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { ProductService } from '../../core/services/product';
 import { Product } from '../../core/models/product.model';
 import { ProductCardComponent } from '../../shared/components/product-card/product-card';
-import { CartService } from '../../core/services/cart';
+import { CartService } from '../../core/services/cart.service';
 
 @Component({
   selector: 'app-home',
