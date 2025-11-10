@@ -98,60 +98,54 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
   }
 
   // === CHARGEMENT PRODUIT ===
-  loadProduct(id: number) {
-    this.loading = true;
-    this.productService.getProductById(id).subscribe({
-      next: (product: Product) => {
-        const enhancedProduct = {
-          ...product,
-          specs: (product as any).specs || [],
-        };
-        this.product = enhancedProduct;
-        this.selectedImage = 0;
-        let images = (product as any).images || [product.image || '/assets/fallback.jpg'];
-        if (images.length < 3) {
-          const main = images[0];
-          images = [...images, main, main].slice(0, 3);
-        }
-        (this.product as any).images = images;
+ loadProduct(id: number) {
+  this.loading = true;
+  this.productService.getProductById(id).subscribe({
+    next: (product: Product) => {
+      const enhancedProduct = {
+        ...product,
+        specs: (product as any).specs || [],
+      };
+      this.product = enhancedProduct;
+      this.selectedImage = 0;
 
-        // Avis simulés
-        this.allReviews = (product as any).reviews || this.generateMockReviews();
-        this.loadedReviewsCount = this.reviewsPerPage;
-        (this.product as any).reviews = this.allReviews.slice(0, this.reviewsPerPage);
-
-        if (!this.product?.rating?.rate) {
-          this.product = {
-            ...this.product,
-            rating: { rate: this.calculateOverallRating(this.allReviews), count: this.allReviews.length }
-          } as any;
-        }
-
-        this.loadSimilarProducts();
-        this.loading = false;
-        this.cdr.markForCheck();
-
-        // SYNCHRONISE LE CŒUR
-        this.updateWishlistStatus();
-      },
-      error: (error: any) => {
-        console.error('Erreur chargement produit :', error);
-        this.loading = false;
-        this.cdr.markForCheck();
+      // Images fallback
+      let images = product.images || [product.image || '/assets/fallback.jpg'];
+      if (images.length < 3) {
+        const main = images[0];
+        images = [...images, main, main].slice(0, 3);
       }
-    });
-  }
+      (this.product as any).images = images;
 
-  // === MOCKS ===
-  private generateMockReviews(): Review[] {
-    return [
-      { user: 'Jean D.', rating: 5, comment: 'Excellent produit !', date: '2025-10-15', helpful: 3 },
-      { user: 'Marie L.', rating: 4, comment: 'Bonne qualité.', date: '2025-10-10', helpful: 1 },
-      { user: 'Paul M.', rating: 5, comment: 'Parfait !', date: '2025-10-05', helpful: 2 },
-      { user: 'Sophie K.', rating: 3, comment: 'Correct, mais pourrait être mieux.', date: '2025-10-01', helpful: 0 },
-      { user: 'Luc T.', rating: 5, comment: 'Super rapport qualité-prix.', date: '2025-09-28', helpful: 4 },
-    ].map(r => ({ ...r, helpfulClicked: false }));
-  }
+      // === AVIS RÉELS ===
+      this.allReviews = this.product?.reviews || [];
+      this.loadedReviewsCount = Math.min(this.reviewsPerPage, this.allReviews.length);
+      (this.product as any).reviews = this.allReviews.slice(0, this.loadedReviewsCount);
+
+      // Correction note globale
+      if (!this.product?.rating?.rate || this.product.rating.count === 0) {
+        const avg = this.allReviews.length > 0
+          ? this.allReviews.reduce((s, r) => s + r.rating, 0) / this.allReviews.length
+          : 4.5;
+        this.product.rating = {
+          rate: Math.round(avg * 10) / 10,
+          count: this.allReviews.length
+        };
+      }
+
+      this.loadSimilarProducts();
+      this.loading = false;
+      this.cdr.markForCheck();
+      this.updateWishlistStatus();
+    },
+    error: (error: any) => {
+      console.error('Erreur chargement produit :', error);
+      this.loading = false;
+      this.cdr.markForCheck();
+    }
+  });
+}
+ 
 
   // === QUANTITÉ ===
   decreaseQuantity(): void {

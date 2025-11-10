@@ -15,12 +15,27 @@ export interface Product {
   thumbnail?: string;
   brand?: string;
   discountPercentage?: number;
-  isNew?: boolean;  // Optionnel : true si produit récent (ex. 2025)
+  isNew?: boolean;
   discount?: number;
+  reviews?: Review[];
+  specs?: Spec[]; // ← CORRIGÉ ICI
+}
+
+export interface Review {
+  user: string;
+  rating: number;
+  comment: string;
+  date: string;
+  helpful?: number;
+  helpfulClicked?: boolean;
+}
+
+export interface Spec {
+  key: string;
+  value: string;
 }
 
 export interface CartItem {
   product: Product;
   quantity: number;
 }
-
