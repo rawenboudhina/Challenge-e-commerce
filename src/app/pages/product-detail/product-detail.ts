@@ -1,7 +1,7 @@
 // src/app/pages/product-detail/product-detail.component.ts
 import { Component, OnInit, OnDestroy, inject, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ProductService } from '../../core/services/product';
+import { ProductService } from '../../core/services/product.service';
 import { CartService } from '../../core/services/cart.service';
 import { WishlistService } from '../../core/services/wishlist.service';
 import { CommonModule } from '@angular/common';
@@ -9,7 +9,7 @@ import { FormsModule } from '@angular/forms';
 import { ProductCardComponent } from '../../shared/components/product-card/product-card';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { Product } from '../../core/models/product.model';
-
+import { RouterModule } from '@angular/router';
 interface Review {
   user: string;
   rating: number;
@@ -26,7 +26,7 @@ interface Spec {
 @Component({
   selector: 'app-product-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule, ProductCardComponent],
+  imports: [CommonModule, FormsModule, ProductCardComponent, RouterModule],
   templateUrl: './product-detail.html',
   styleUrls: ['./product-detail.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush

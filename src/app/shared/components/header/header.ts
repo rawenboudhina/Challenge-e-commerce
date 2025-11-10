@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { CartService } from '../../../core/services/cart.service';
 import { AuthService } from '../../../core/services/auth.service';
-import { ProductService } from '../../../core/services/product';
+import { ProductService } from '../../../core/services/product.service';
 import { FormsModule } from '@angular/forms';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { debounceTime, distinctUntilChanged, switchMap, catchError } from 'rxjs/operators';
@@ -80,6 +80,10 @@ export class HeaderComponent implements OnInit, OnDestroy {
   /*   this.productService.getCategories().subscribe(cats => {
       this.categories = cats;;
     }); */
+    // Dans ngOnInit
+this.productService.getCategoryList().subscribe(cats => {
+  this.categories = cats;
+});
     this.productService.getCategoryList().subscribe(cats => {
       this.categories = cats; // ← 8 objets complets
     });
@@ -214,7 +218,12 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
 formatCategory(category: Category): string {
-    return category.name;
-  }
+  return category.name;
+}
+
+// Ajoute une fonction pour le slug (plus propre)
+getCategorySlug(category: Category): string {
+  return category.slug || category.name.toLowerCase().replace(/\s+/g, '-');
+}
 
 }

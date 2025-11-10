@@ -24,7 +24,7 @@ export class LoginComponent {
   errorMessage = '';
   loading = false;
 
-  onSubmit() {
+/*   onSubmit() {
     if (this.loginForm.invalid) {
       this.errorMessage = 'Veuillez remplir correctement le formulaire.';
       return;
@@ -45,7 +45,34 @@ export class LoginComponent {
         this.errorMessage = err.message;
       }
     });
+  } */
+ onSubmit() {
+  if (this.loginForm.invalid) {
+    this.errorMessage = 'Veuillez remplir correctement le formulaire.';
+    return;
   }
+
+  this.loading = true;
+  this.errorMessage = '';
+
+  const { email, password } = this.loginForm.value;
+
+  this.authService.login(email!, password!).subscribe({
+    next: () => {
+      this.loading = false;
+
+      // RÉCUPÈRE returnUrl depuis l'URL
+      const returnUrl = this.router.parseUrl(this.router.url).queryParams['returnUrl'];
+      
+      // Redirige vers returnUrl OU /products par défaut
+      this.router.navigateByUrl(returnUrl || '/products');
+    },
+    error: (err: any) => {
+      this.loading = false;
+      this.errorMessage = err.message || 'Identifiants incorrects';
+    }
+  });
+}
 
   get f() { return this.loginForm.controls; }
 }

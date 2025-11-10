@@ -1,51 +1,89 @@
 <div class="product-detail-page" *ngIf="!loading; else loadingTemplate">
-  <!-- Contenu principal -->
-  <section class="product-main">
-    <div class="container">
-      <div class="product-grid">
-        <!-- Galerie (minimum 3 images) -->
-        <div class="gallery">
-          <div class="main-image">
-            <img [src]="product?.images?.[selectedImage] || product?.image || '/assets/fallback.jpg'"
-                 [alt]="product?.title || 'Produit'"
-                 (error)="onImageError($event)"
-                 loading="lazy" />
-          </div>
-          <div class="thumbnails">
-            @for (img of (product?.images || [product?.image]); track $index) {
-              <div class="thumb" [class.active]="selectedImage === $index" (click)="selectImage($index)" role="button" tabindex="0">
-                <img [src]="img || '/assets/fallback.jpg'" [alt]="product?.title || 'Produit'" loading="lazy" />
-              </div>
-            }
-          </div>
+  <div class="container">
+
+    <!-- Breadcrumb -->
+    <nav class="breadcrumb" aria-label="Fil d'Ariane">
+      <a routerLink="/">Accueil</a> /
+      <a [routerLink]="['/category', product?.category]">{{ product?.category | titlecase }}</a> /
+      <span>{{ product?.title }}</span>
+    </nav>
+
+    <div class="product-grid">
+
+      <!-- === GALERIE === -->
+      <div class="gallery">
+        <div class="main-image-wrapper">
+          <img [src]="product?.images?.[selectedImage] || product?.image || '/assets/fallback.jpg'"
+               [alt]="product?.title + ' - vue principale'"
+               (error)="onImageError($event)"
+               loading="lazy"
+               class="main-image">
+
+          <!-- Badge promo -->
+          @if (product?.discountPercentage) {
+            <div class="promo-badge">-{{ product?.discountPercentage }}%</div>
+          }
+
+          <!-- Wishlist flottant -->
+          <button class="wishlist-btn"
+                  [class.active]="isInWishlist"
+                  (click)="toggleWishlist()"
+                  [attr.aria-label]="isInWishlist ? 'Retirer des favoris' : 'Ajouter aux favoris'">
+            <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          </button>
         </div>
-        <!-- Infos -->
-        <div class="info">
-          <h1 class="title">{{ product?.title || 'Produit inconnu' }}</h1>
-         
-          <!-- Rating -->
-          <div class="rating" *ngIf="product?.rating">
-            <div class="stars">
-              @for (star of ratingStars; track $index) {
-                <span class="star" [class.full]="star === 1" [class.half]="star === 0.5" [class.empty]="star === 0">★</span>
-              }
-            </div>
-            <span class="count">({{ (product?.rating?.count || 0) }} avis)</span>
-          </div>
-          <!-- Prix -->
-          <div class="price-stock">
-            <span class="price">{{ (product?.price || 0) | currency:'EUR' }}</span>
-            <span class="stock" [class.out]="!inStock">{{ stockText }}</span>
-            @if (product?.discountPercentage) {
-              <span class="original-price">{{ originalPrice | currency:'EUR' }}</span>
-              <span class="discount-badge">-{{ product?.discountPercentage }}%</span>
-              <span class="savings">Économisez {{ savings | currency:'EUR' }}</span>
+
+        <!-- Thumbnails -->
+        <div class="thumbnails">
+          @for (img of (product?.images || [product?.image]); track $index) {
+            <button class="thumb"
+                    [class.active]="selectedImage === $index"
+                    (click)="selectImage($index)"
+                    [attr.aria-label]="'Image ' + ($index + 1)">
+              <img [src]="img || '/assets/fallback.jpg'"
+                   [alt]="product?.title + ' - vue ' + ($index + 1)"
+                   loading="lazy">
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- === INFOS === -->
+      <div class="info">
+        <h1 class="title">{{ product?.title }}</h1>
+
+        <!-- Rating -->
+        <div class="rating" *ngIf="product?.rating">
+          <div class="stars">
+            @for (star of ratingStars; track $index) {
+              <span class="star" [class.full]="star === 1" [class.half]="star === 0.5">★</span>
             }
           </div>
-          <!-- Description -->
-          <div class="description" [innerHTML]="safeDescription"></div>
-          <!-- Specs -->
-          <div class="specs" *ngIf="productSpecs.length > 0">
+          <a routerLink="." fragment="reviews" class="count">
+            ({{ product?.rating?.count }} avis)
+          </a>
+        </div>
+
+        <!-- Prix + Stock -->
+        <div class="price-stock">
+          <div class="price">{{ product?.price | currency:'EUR':'symbol':'1.2-2' }}</div>
+          <div class="stock" [class.out]="!inStock">{{ stockText }}</div>
+
+          @if (product?.discountPercentage) {
+            <div class="discount-info">
+              <del class="original-price">{{ originalPrice | currency:'EUR':'symbol':'1.2-2' }}</del>
+              <span class="discount-badge">-{{ product?.discountPercentage }}%</span>
+              <span class="savings">Économisez {{ savings | currency:'EUR':'symbol':'1.0-0' }}</span>
+            </div>
+          }
+        </div>
+
+        <!-- Description -->
+        <div class="description" [innerHTML]="safeDescription"></div>
+
+        <!-- Specs -->
+        @if (productSpecs.length > 0) {
+          <div class="specs">
             <h3>Caractéristiques techniques</h3>
             <ul>
               @for (spec of productSpecs; track spec.key) {
@@ -53,140 +91,172 @@
               }
             </ul>
           </div>
-          <!-- Actions -->
-          <div class="actions" *ngIf="inStock">
+        }
+
+        <!-- Actions -->
+        <div class="actions" [class.out-of-stock]="!inStock">
+          @if (inStock) {
             <div class="quantity">
-              <button (click)="decreaseQuantity()" [disabled]="quantity <= 1">−</button>
-              <input type="number" [(ngModel)]="quantity" min="1" [max]="getProductStock()" (change)="validateQuantity()">
-              <button (click)="increaseQuantity()" [disabled]="quantity >= getProductStock()">+</button>
+              <button (click)="decreaseQuantity()" [disabled]="quantity <= 1" aria-label="Diminuer">−</button>
+              <input type="number" [(ngModel)]="quantity" (change)="validateQuantity()" [max]="getProductStock()">
+              <button (click)="increaseQuantity()" [disabled]="quantity >= getProductStock()" aria-label="Augmenter">+</button>
             </div>
+
             <button class="btn-add" (click)="addToCart()" [disabled]="quantity < 1">
               Ajouter au panier
             </button>
-            <button class="btn-wishlist" 
-        (click)="toggleWishlist()" 
-        [class.active]="isInWishlist"
-        [attr.aria-label]="isInWishlist ? 'Retirer de la wishlist' : 'Ajouter à la wishlist'">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-  </svg>
-  <span class="text">{{ isInWishlist ? 'Retirer' : 'Ajouter' }}</span>
-</button>
-          </div>
-          <div class="out-of-stock" *ngIf="!inStock">
-            Produit indisponible. <button class="btn-notify" (click)="notifyWhenAvailable()">Notifier</button>
-          </div>
+
+            <button class="btn-wishlist"
+                    (click)="toggleWishlist()"
+                    [class.active]="isInWishlist">
+              <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+              <span>{{ isInWishlist ? 'Retirer' : 'Favoris' }}</span>
+            </button>
+          } @else {
+            <div class="out-of-stock">
+              Produit indisponible
+              <button class="btn-notify" (click)="notifyWhenAvailable()">Me notifier</button>
+            </div>
+          }
+        </div>
+
+        <!-- Avantages -->
+        <div class="benefits">
+          <div class="benefit"><svg viewBox="0 0 24 24"><path d="M8 3h8v2H8zM6 7h12v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V7z"/></svg>Livraison gratuite dès 50€</div>
+          <div class="benefit"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z"/></svg>Retour sous 30 jours</div>
         </div>
       </div>
     </div>
-  </section>
-  <!-- Avis -->
-  <section class="reviews" *ngIf="customerReviews.length > 0">
-    <div class="container">
-      <div class="reviews-header">
-        <h2>Évaluations et avis clients</h2>
-        <div class="overall-rating">
-          <div class="overall-stars">
-            @for (star of overallRatingStars; track $index) {
-              <span class="star" [class.full]="star === 1" [class.half]="star === 0.5" [class.empty]="star === 0">★</span>
-            }
+
+    <!-- === AVIS === -->
+    <section class="reviews" *ngIf="customerReviews.length > 0" id="reviews">
+      <div class="container">
+        <div class="reviews-header">
+          <h2>Évaluations clients</h2>
+          <div class="overall-rating">
+            <div class="overall-stars">
+              @for (star of overallRatingStars; track $index) {
+                <span class="star" [class.full]="star === 1" [class.half]="star === 0.5">★</span>
+              }
+            </div>
+            <span class="overall-score">{{ overallRating | number:'1.1-1' }}/5</span>
+            <span class="review-count">({{ customerReviews.length }} avis)</span>
           </div>
-          <span class="overall-score">{{ overallRating | number:'1.1-1' }}/5</span>
-          <span class="review-count">({{ customerReviews.length }} avis)</span>
         </div>
-      </div>
-      <!-- Formulaire d'avis -->
-      <div class="review-form" *ngIf="showReviewForm">
-        <h3>Écrire un avis</h3>
-        <form (ngSubmit)="submitReview()">
-          <div class="form-group">
-            <label for="userName">Votre nom :</label>
-            <input type="text" id="userName" [(ngModel)]="newReview.user" name="user" required>
-          </div>
-          <div class="form-group">
-            <label>Note :</label>
-            <div class="stars-input">
-              @for (star of [1,2,3,4,5]; track star) {
-                <span class="star-input" (click)="setReviewRating(star)" [class.selected]="(newReview.rating ?? 0) >= star">★</span>
-              }
+
+        <!-- Breakdown -->
+        <div class="rating-breakdown">
+          @for (bar of ratingBreakdown; track bar.stars) {
+            <div class="bar">
+              <span class="stars-label">{{ bar.stars }}
+                @for (s of getMiniStars(bar.stars); track $index) {
+                  <span class="mini-star" [class.full]="s === 1">★</span>
+                }
+              </span>
+              <div class="progress-container">
+                <div class="progress-bar" [style.width.%]="bar.percentage"></div>
+              </div>
+              <span class="percentage">{{ bar.percentage }}%</span>
             </div>
-          </div>
-          <div class="form-group">
-            <label for="comment">Commentaire :</label>
-            <textarea id="comment" [(ngModel)]="newReview.comment" name="comment" rows="4" required></textarea>
-          </div>
-          <button type="submit" class="btn-submit">Envoyer l'avis</button>
-          <button type="button" (click)="cancelReview()" class="btn-cancel">Annuler</button>
-        </form>
-      </div>
-      <!-- Breakdown -->
-      <div class="rating-breakdown">
-        @for (bar of ratingBreakdown; track bar.stars) {
-          <div class="bar">
-            <span class="stars-label">{{ bar.stars }} 
-              @for (s of getMiniStars(bar.stars); track $index) { 
-                <span class="mini-star" [class.full]="s === 1">★</span>
-              }
-            </span>
-            <div class="progress-container">
-              <div class="progress-bar" [style.width.%]="bar.percentage"></div>
-            </div>
-            <span class="percentage">{{ bar.percentage }}%</span>
+          }
+        </div>
+
+        <!-- Formulaire -->
+        @if (showReviewForm) {
+          <div class="review-form">
+            <h3>Laisser un avis</h3>
+            <form (ngSubmit)="submitReview()">
+              <div class="form-group">
+                <label>Votre nom</label>
+                <input type="text" [(ngModel)]="newReview.user" name="user" required>
+              </div>
+              <div class="form-group">
+                <label>Note</label>
+                <div class="stars-input">
+                  @for (star of [1,2,3,4,5]; track star) {
+                    <span class="star-input"
+                          (click)="setReviewRating(star)"
+                          [class.selected]="(newReview.rating ?? 0) >= star">★</span>
+                  }
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Commentaire</label>
+                <textarea [(ngModel)]="newReview.comment" name="comment" rows="4" required></textarea>
+              </div>
+              <button type="submit" class="btn-submit">Envoyer</button>
+              <button type="button" (click)="cancelReview()" class="btn-cancel">Annuler</button>
+            </form>
           </div>
         }
-      </div>
-      @for (review of customerReviews; track $index) {
-        <div class="review-card">
-          <div class="review-header">
-            <div class="user-info">
-              <span class="user">{{ review.user }}</span>
-              <span class="date">{{ review.date }}</span>
+
+        <!-- Avis -->
+        @for (review of customerReviews; track $index) {
+          <div class="review-card">
+            <div class="review-header">
+              <div class="user-info">
+                <strong>{{ review.user }}</strong>
+                <span class="date">{{ review.date }}</span>
+              </div>
+              <div class="review-stars">
+                @for (star of getStarsForReview(review.rating); track $index) {
+                  <span class="star filled">★</span>
+                }
+              </div>
             </div>
-            <div class="review-stars">
-              @for (star of getStarsForReview(review.rating); track $index) {
-                <span class="star" [class.filled]="star === 1">★</span>
-              }
-            </div>
-          </div>
-          <p class="review-comment">{{ review.comment }}</p>
-          <div class="review-actions">
-            <button class="btn-helpful" (click)="markHelpful(review)" [disabled]="review.helpfulClicked"
-                    title="Marquer cet avis comme utile (cliquez pour voter une fois)">
+            <p class="review-comment">{{ review.comment }}</p>
+            <button class="btn-helpful"
+                    (click)="markHelpful(review)"
+                    [disabled]="review.helpfulClicked">
               Utile ({{ review.helpful ?? 0 }})
             </button>
           </div>
-        </div>
-      }
-      <button class="btn-load-more" *ngIf="hasMoreReviews" (click)="loadMoreReviews()">Charger plus d'avis</button>
-      <button class="btn-write-review" (click)="openReviewModal()" *ngIf="!showReviewForm">Écrire un avis</button>
-    </div>
-  </section>
-  <!-- Similaires -->
-  <section class="similar-products" *ngIf="similarProducts.length > 0">
-    <div class="container">
-      <h2>Produits similaires</h2>
-      <div class="similar-grid">
-        @for (similar of similarProducts; track similar.id) {
-          <app-product-card [product]="similar" (addToCart)="onSimilarProductAddToCart(similar)"></app-product-card>
         }
+
+        <button class="btn-load-more" *ngIf="hasMoreReviews" (click)="loadMoreReviews()">
+          Charger plus d'avis
+        </button>
+        <button class="btn-write-review" *ngIf="!showReviewForm" (click)="openReviewModal()">
+          Écrire un avis
+        </button>
       </div>
-    </div>
-  </section>
+    </section>
+
+    <!-- === SIMILAIRES === -->
+    <section class="similar-products" *ngIf="similarProducts.length > 0">
+      <div class="container">
+        <h2>Produits similaires</h2>
+        <div class="similar-grid">
+          @for (similar of similarProducts; track similar.id) {
+            <app-product-card [product]="similar"
+                              (addToCart)="onSimilarProductAddToCart(similar)">
+            </app-product-card>
+          }
+        </div>
+      </div>
+    </section>
+  </div>
 </div>
+
 <!-- Loading -->
 <ng-template #loadingTemplate>
-  <div class="skeleton-grid container">
-    <div class="gallery">
-      <div class="skeleton-bg main-image"></div>
-      <div class="thumbnails">
-        @for (i of [1,2,3]; track i) { <div class="skeleton-bg thumb"></div> }
+  <div class="container">
+    <div class="skeleton-grid">
+      <div class="gallery">
+        <div class="skeleton-bg main-image"></div>
+        <div class="thumbnails">
+          @for (i of [1,2,3]; track i) {
+            <div class="skeleton-bg thumb"></div>
+          }
+        </div>
       </div>
-    </div>
-    <div class="info">
-      <div class="skeleton-bg skeleton-title"></div>
-      <div class="skeleton-bg skeleton-text"></div>
-      <div class="skeleton-bg skeleton-price"></div>
-      <div class="skeleton-bg skeleton-btn"></div>
+      <div class="info">
+        <div class="skeleton-bg title"></div>
+        <div class="skeleton-bg line"></div>
+        <div class="skeleton-bg line short"></div>
+        <div class="skeleton-bg price"></div>
+        <div class="skeleton-bg button"></div>
+      </div>
     </div>
   </div>
 </ng-template>

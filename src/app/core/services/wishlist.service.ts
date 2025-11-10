@@ -1,28 +1,32 @@
 // src/app/core/services/wishlist.service.ts
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, of } from 'rxjs';
-import { catchError, tap } from 'rxjs/operators';
+import { catchError, tap, map } from 'rxjs/operators';
 import { Product } from '../models/product.model';
 import { AuthService } from './auth.service';
 import { switchMap } from 'rxjs/operators';
+import { shareReplay } from 'rxjs/operators';
 @Injectable({
   providedIn: 'root'
 })
 export class WishlistService {
   private apiUrl = 'http://localhost:3000';
-  private wishlistSubject = new BehaviorSubject<number[]>([]); // stocke les IDs
+  private wishlistSubject = new BehaviorSubject<number[]>([]);
   wishlist$ = this.wishlistSubject.asObservable();
-
-  private wishlist: number[] = []; // cache en mémoire (IDs)
+  private wishlist: number[] = [];
   private userId: number | null = null;
 
-  constructor(
-    private http: HttpClient,
-    private authService: AuthService
-  ) {
+  private http = inject(HttpClient);
+  private authService = inject(AuthService);
+
+  public readonly isLoggedIn$ = this.authService.currentUser$.pipe(
+  map(user => !!user),
+  shareReplay(1) // CETTE LIGNE MANQUAIT → LA CLÉ DE TOUT !
+);
+  constructor() {
     this.authService.currentUser$.subscribe(user => {
-      const newUserId = user?.id || null;
+      const newUserId = user?.id ?? null;
       if (newUserId !== this.userId) {
         this.userId = newUserId;
         if (this.userId) {
@@ -34,7 +38,6 @@ export class WishlistService {
     });
   }
 
-  // Charge la wishlist du serveur
   private loadWishlist(): void {
     this.http.get<{ userId: number; products: number[] }[]>(
       `${this.apiUrl}/wishlists?userId=${this.userId}`
@@ -52,35 +55,28 @@ export class WishlistService {
     ).subscribe();
   }
 
-  // Sauvegarde sur le serveur
- private saveToServer(): void {
-  if (!this.userId) return;
-
-  // Cherche si la wishlist existe
-  this.http.get<{ id: number; userId: number; products: number[] }[]>(
-    `${this.apiUrl}/wishlists?userId=${this.userId}`
-  ).pipe(
-    switchMap(existing => {
-      const payload = { userId: this.userId, products: this.wishlist };
-
-      if (existing.length > 0) {
-        // Mise à jour
-        return this.http.patch(`${this.apiUrl}/wishlists/${existing[0].id}`, payload);
-      } else {
-        // Création
-        return this.http.post(`${this.apiUrl}/wishlists`, payload);
-      }
-    }),
-    catchError(err => {
-      console.error('Erreur sauvegarde wishlist', err);
-      return of(null);
-    })
-  ).subscribe();
-}
+  private saveToServer(): void {
+    if (!this.userId) return;
+    this.http.get<{ id: number; userId: number; products: number[] }[]>(
+      `${this.apiUrl}/wishlists?userId=${this.userId}`
+    ).pipe(
+      switchMap(existing => {
+        const payload = { userId: this.userId, products: this.wishlist };
+        if (existing.length > 0) {
+          return this.http.patch(`${this.apiUrl}/wishlists/${existing[0].id}`, payload);
+        } else {
+          return this.http.post(`${this.apiUrl}/wishlists`, payload);
+        }
+      }),
+      catchError(err => {
+        console.error('Erreur sauvegarde wishlist', err);
+        return of(null);
+      })
+    ).subscribe();
+  }
 
   add(product: Product): void {
     if (!this.userId || this.wishlist.includes(product.id)) return;
-
     this.wishlist.push(product.id);
     this.wishlistSubject.next([...this.wishlist]);
     this.saveToServer();
@@ -88,7 +84,6 @@ export class WishlistService {
 
   remove(productId: number): void {
     if (!this.userId) return;
-
     this.wishlist = this.wishlist.filter(id => id !== productId);
     this.wishlistSubject.next([...this.wishlist]);
     this.saveToServer();
@@ -114,8 +109,8 @@ export class WishlistService {
     this.wishlist = [];
     this.wishlistSubject.next([]);
   }
-  // À la fin du WishlistService (après clearWishlist)
-get currentUserId(): number | null {
-  return this.userId;
-}
+
+  public get currentUserId(): number | null {
+    return this.userId;
+  }
 }

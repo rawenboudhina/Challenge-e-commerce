@@ -1,10 +1,9 @@
 // src/app/core/services/auth.service.ts
-import { Injectable, inject } from '@angular/core';
+import { Injectable, Injector, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, throwError } from 'rxjs';
 import { map, catchError, switchMap } from 'rxjs/operators';
 import { User } from '../models/user.model';
-import { CartService } from './cart.service';
 
 interface UserPayload extends Omit<User, 'password'> {
   token: string;
@@ -18,7 +17,7 @@ export class AuthService {
   private currentUserSubject = new BehaviorSubject<UserPayload | null>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
 
-  // ON NE MET PLUS EnvironmentInjector ICI → c'était ÇA le problème !
+  private injector = inject(Injector);
   private http = inject(HttpClient);
 
   constructor() {
@@ -40,38 +39,19 @@ export class AuthService {
   }
 
   private mergeCartOnUserChange(): void {
-    // Magie moderne : inject() sans contexte → fonctionne car on est dans une injection context (constructor ou méthode appelée depuis)
-    const cartService = inject(CartService, { optional: true });
-    if (cartService) {
-      cartService.mergeLocalCartOnLogin();
-    }
-  }
-
-  login(email: string, password: string): Observable<UserPayload> {
-    return this.http.get<User[]>(`${this.apiUrl}/users?email=${email}`).pipe(
-      map(users => {
-        const user = users[0];
-        if (!user || user.password !== password) {
-          throw new Error('Email ou mot de passe invalide');
+    setTimeout(() => {
+      try {
+        const cartService = this.injector.get<any>(class {}, null);
+        if (cartService?.mergeLocalCartOnLogin) {
+          cartService.mergeLocalCartOnLogin();
         }
-        return user;
-      }),
-      map(user => {
-        const { password: _, ...safeUser } = user;
-        const token = `jwt-${user.id}-${Date.now()}`;
-        const payload: UserPayload = { ...safeUser, token };
-        localStorage.setItem('currentUser', JSON.stringify(payload));
-        this.currentUserSubject.next(payload);
-        this.mergeCartOnUserChange(); // ← ici aussi
-        return payload;
-      }),
-      catchError(err => {
-        const message = err.message || 'Erreur de connexion';
-        return throwError(() => new Error(message));
-      })
-    );
+      } catch (e) {
+        setTimeout(() => this.mergeCartOnUserChange(), 100);
+      }
+    }, 0);
   }
 
+  // MÉTHODE OUBLIÉE → REMETS-LA !
   register(data: {
     firstName: string;
     lastName: string;
@@ -113,8 +93,31 @@ export class AuthService {
         );
       }),
       catchError(err => {
-        const message = err.message || 'Erreur d’inscription';
-        return throwError(() => new Error(message));
+        return throwError(() => new Error(err.message || 'Erreur d’inscription'));
+      })
+    );
+  }
+
+  login(email: string, password: string): Observable<UserPayload> {
+    return this.http.get<User[]>(`${this.apiUrl}/users?email=${email}`).pipe(
+      map(users => {
+        const user = users[0];
+        if (!user || user.password !== password) {
+          throw new Error('Email ou mot de passe invalide');
+        }
+        return user;
+      }),
+      map(user => {
+        const { password: _, ...safeUser } = user;
+        const token = `jwt-${user.id}-${Date.now()}`;
+        const payload: UserPayload = { ...safeUser, token };
+        localStorage.setItem('currentUser', JSON.stringify(payload));
+        this.currentUserSubject.next(payload);
+        this.mergeCartOnUserChange();
+        return payload;
+      }),
+      catchError(err => {
+        return throwError(() => new Error(err.message || 'Erreur de connexion'));
       })
     );
   }

@@ -15,7 +15,7 @@ import { Router, RouterModule } from '@angular/router';
 import { Product } from '../../../core/models/product.model';
 import { WishlistService } from '../../../core/services/wishlist.service';
 import { CartService } from '../../../core/services/cart.service';
-
+import { AuthService } from '../../../core/services/auth.service';  
 @Component({
   selector: 'app-product-card',
   standalone: true,
@@ -29,28 +29,24 @@ export class ProductCardComponent implements OnInit, OnDestroy {
   @Output() addToCart = new EventEmitter<Product>();
   @Output() quickBuy = new EventEmitter<Product>();
 
-  // Services
-  private wishlistService = inject(WishlistService);
+  wishlistService = inject(WishlistService);
   private cartService = inject(CartService);
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
 
-  // État local
+  private subscriptionWishlist: any;
   isWishlisted = false;
-  private subscription: any;
 
   ngOnInit(): void {
-    // S'abonne à wishlist$ pour réactivité instantanée
-    this.subscription = this.wishlistService.wishlist$.subscribe(ids => {
+    this.subscriptionWishlist = this.wishlistService.wishlist$.subscribe(ids => {
       this.isWishlisted = ids.includes(this.product.id);
-      this.cdr.markForCheck(); // Force mise à jour avec OnPush
+      this.cdr.markForCheck();
     });
   }
 
   ngOnDestroy(): void {
-    this.subscription?.unsubscribe();
+    this.subscriptionWishlist?.unsubscribe();
   }
-
   // === PRIX ===
   get originalPrice(): number {
     if (this.product.discountPercentage && this.product.discountPercentage > 0) {

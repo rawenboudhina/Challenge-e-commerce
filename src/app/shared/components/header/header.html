@@ -95,15 +95,17 @@
           <div class="mobile-categories">
             <h3 class="categories-title">Catégories</h3>
             @for (category of categories; track category) {
-            <a
-              [routerLink]="['/products']"
-              [queryParams]="{ category: category }"
-              class="category-item"
-              routerLinkActive="active"
-              (click)="closeMenu()"
-            >
-              {{ formatCategory(category) }}
-            </a>
+            <!-- Remplace TOUTES les balises <a> de catégories par ça -->
+<a
+  [routerLink]="['/products']"
+  [queryParams]="{ category: getCategorySlug(category) }"
+  class="category-item"
+  routerLinkActive="active"
+  [routerLinkActiveOptions]="{ exact: true }"
+  (click)="closeMenu()"
+>
+  {{ formatCategory(category) }}
+</a>
             }
           </div>
           }
@@ -256,14 +258,17 @@
     <div class="container">
       <div class="categories-list">
         @for (category of categories; track category) {
-        <a
-          [routerLink]="['/products']"
-          [queryParams]="{ category: category }"
-          class="category-item"
-          routerLinkActive="active"
-        >
-          {{ formatCategory(category) }}
-        </a>
+      <!-- Remplace TOUTES les balises <a> de catégories par ça -->
+<a
+  [routerLink]="['/products']"
+  [queryParams]="{ category: getCategorySlug(category) }"
+  class="category-item"
+  routerLinkActive="active"
+  [routerLinkActiveOptions]="{ exact: true }"
+  (click)="closeMenu()"
+>
+  {{ formatCategory(category) }}
+</a>
         }
       </div>
     </div>
