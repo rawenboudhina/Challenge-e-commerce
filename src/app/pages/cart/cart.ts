@@ -5,8 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { CartService } from '../../core/services/cart.service';
 import { AuthService } from '../../core/services/auth.service';
 import { Product, CartItem } from '../../core/models/product.model';
-import { RouterModule } from '@angular/router';
-
+import { Router, RouterModule } from '@angular/router'; 
 interface Spec {
   key: string;
   value: string;
@@ -26,7 +25,8 @@ export class CartComponent implements OnInit, OnDestroy {  // ← CHANGÉ ICI
 
   constructor(
     private cartService: CartService,
-    private authService: AuthService
+    private authService: AuthService,
+    private router: Router 
   ) {}
 
   ngOnInit() {
@@ -85,10 +85,13 @@ export class CartComponent implements OnInit, OnDestroy {  // ← CHANGÉ ICI
     }
   }
 
-  proceedToCheckout(): void {
-    if (this.cartItems.length > 0) {
-      alert('Redirection vers paiement...');
+ proceedToCheckout(): void {
+    if (this.cartItems.length === 0) {
+      alert('Votre panier est vide. Ajoutez des articles avant de continuer.');
+      this.router.navigate(['/products']); // Optionnel : Rediriger vers produits
+      return;
     }
+    this.router.navigate(['/checkout']); // ← Redirection vers la page de paiement
   }
 
   getProductSpecs(product: Product): Spec[] {

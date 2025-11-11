@@ -1,0 +1,142 @@
+<!-- src/app/pages/checkout/checkout.component.html (mis à jour pour sélection d'adresses multiples string) -->
+<div class="checkout-page" *ngIf="!isLoading; else loadingTemplate">
+  <div class="container">
+    <!-- Header -->
+    <div class="checkout-header">
+      <h1>Finaliser la commande</h1>
+      <p>Vous avez {{ cartItems.length }} article(s) à commander.</p>
+    </div>
+
+    <!-- Récapitulatif de la commande -->
+    <div class="order-summary">
+      <h2>Récapitulatif de la commande</h2>
+      <div class="summary-items">
+        @for (item of cartItems; track item.product.id) {
+          <div class="summary-item">
+            <img [src]="item.product.image || '/assets/fallback.jpg'" [alt]="item.product.title" class="item-image">
+            <div class="item-details">
+              <h3>{{ item.product.title }}</h3>
+              <p>{{ item.quantity }} x {{ item.product.price | currency:'TND' }}</p>
+            </div>
+            <span class="item-total">{{ getSubtotal(item) | currency:'TND' }}</span>
+          </div>
+        }
+      </div>
+      <div class="summary-totals">
+        <div class="summary-row">
+          <span>Sous-total</span>
+          <span>{{ subtotal | currency:'TND' }}</span>
+        </div>
+        <div class="summary-row">
+          <span>Frais de livraison</span>
+          <span>{{ shippingFee | currency:'TND' }}</span>
+        </div>
+        <div class="summary-row total">
+          <span>Total</span>
+          <strong>{{ total | currency:'TND' }}</strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- Adresse de livraison avec sélection -->
+    <div class="delivery-address">
+      <h2>Adresse de livraison</h2>
+      <p *ngIf="authService.isAuthenticated()">Sélectionnez ou ajoutez une adresse depuis votre profil.</p>
+      <div *ngIf="addresses.length > 0" class="address-options">
+        <p><strong>Choisir une adresse :</strong></p>
+        @for (address of addresses; track $index) {
+          <div class="address-option" [class.selected]="selectedAddressIndex === $index" (click)="onAddressChange($index)">
+            <input type="radio" [id]="'addr-' + $index" [checked]="selectedAddressIndex === $index" (change)="onAddressChange($index)">
+            <label [for]="'addr-' + $index">
+              <p>{{ address }}</p>
+            </label>
+          </div>
+        }
+        <button type="button" class="btn-add-address" (click)="showNewAddressForm = true">Ajouter une nouvelle adresse</button>
+      </div>
+      <div *ngIf="addresses.length === 0" class="empty-state">
+        <p>Aucune adresse enregistrée.</p>
+        <button type="button" class="btn-add-address" (click)="showNewAddressForm = true">Ajouter une adresse</button>
+      </div>
+
+      <!-- Formulaire pour nouvelle adresse ou édition (seulement fullName + street) -->
+      <form [formGroup]="addressForm" novalidate *ngIf="showNewAddressForm || addresses.length === 0">
+        <div class="form-group">
+          <label for="fullName">Nom complet *</label>
+          <input id="fullName" type="text" formControlName="fullName" class="form-control" [class.error]="submitted && addressFormControl('fullName').invalid">
+          <div *ngIf="submitted && addressFormControl('fullName').invalid" class="error-message">Nom complet requis.</div>
+        </div>
+        <div class="form-group">
+          <label for="street">Adresse *</label>
+          <input id="street" type="text" formControlName="street" class="form-control" [class.error]="submitted && addressFormControl('street').invalid">
+          <div *ngIf="submitted && addressFormControl('street').invalid" class="error-message">Adresse requise.</div>
+        </div>
+        <button type="button" class="btn-save-address" (click)="addNewAddress()" [disabled]="addressForm.invalid">Enregistrer et utiliser cette adresse</button>
+      </form>
+    </div>
+
+    <!-- Choix du mode de livraison -->
+    <div class="delivery-method">
+      <h2>Mode de livraison</h2>
+      <div class="method-options">
+        @for (method of deliveryMethods; track method.id) {
+          <div class="method-option" [class.selected]="selectedDelivery?.id === method.id" (click)="onDeliveryChange(method)">
+            <input type="radio" [id]="'method-' + method.id" [checked]="selectedDelivery?.id === method.id" (change)="onDeliveryChange(method)">
+            <label [for]="'method-' + method.id">
+              <h3>{{ method.name }} ({{ method.price | currency:'TND' }})</h3>
+              <p>{{ method.description }}</p>
+            </label>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Formulaire de paiement (mockup) -->
+    <div class="payment-form">
+      <h2>Informations de paiement</h2>
+      <form [formGroup]="paymentForm" novalidate>
+        <div class="form-group">
+          <label for="cardNumber">Numéro de carte *</label>
+          <input id="cardNumber" type="text" formControlName="cardNumber" placeholder="1234 5678 9012 3456" class="form-control" [class.error]="submitted && paymentFormControl('cardNumber').invalid">
+          <div *ngIf="submitted && paymentFormControl('cardNumber').invalid" class="error-message">Numéro de carte valide (16 chiffres) requis.</div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="expiryMonth">Mois d'expiration *</label>
+            <input id="expiryMonth" type="number" formControlName="expiryMonth" min="1" max="12" class="form-control small" [class.error]="submitted && paymentFormControl('expiryMonth').invalid">
+            <div *ngIf="submitted && paymentFormControl('expiryMonth').invalid" class="error-message">Mois valide requis.</div>
+          </div>
+          <div class="form-group">
+            <label for="expiryYear">Année d'expiration *</label>
+            <input id="expiryYear" type="number" formControlName="expiryYear" min="2025" class="form-control small" [class.error]="submitted && paymentFormControl('expiryYear').invalid">
+            <div *ngIf="submitted && paymentFormControl('expiryYear').invalid" class="error-message">Année valide requise.</div>
+          </div>
+          <div class="form-group">
+            <label for="cvv">CVV *</label>
+            <input id="cvv" type="text" formControlName="cvv" placeholder="123" class="form-control small" [class.error]="submitted && paymentFormControl('cvv').invalid">
+            <div *ngIf="submitted && paymentFormControl('cvv').invalid" class="error-message">CVV valide (3-4 chiffres) requis.</div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="nameOnCard">Nom sur la carte *</label>
+          <input id="nameOnCard" type="text" formControlName="nameOnCard" class="form-control" [class.error]="submitted && paymentFormControl('nameOnCard').invalid">
+          <div *ngIf="submitted && paymentFormControl('nameOnCard').invalid" class="error-message">Nom requis.</div>
+        </div>
+        <p class="mock-note"><small>Informations de paiement mockées - pas de traitement réel.</small></p>
+      </form>
+    </div>
+
+    <!-- Bouton de confirmation -->
+    <div class="checkout-actions">
+      <button class="btn-back" routerLink="/cart">Retour au panier</button>
+      <button class="btn-confirm" (click)="onSubmit()" [disabled]="isLoading">Confirmer la commande ({{ total | currency:'TND' }})</button>
+    </div>
+  </div>
+</div>
+
+<!-- Loading -->
+<ng-template #loadingTemplate>
+  <div class="loading-container">
+    <p>Traitement de la commande...</p>
+  </div>
+</ng-template>

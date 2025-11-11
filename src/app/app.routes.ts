@@ -5,6 +5,7 @@ import { Products } from './pages/products/products';
 import { CartComponent } from './pages/cart/cart';
 import { LoginComponent } from './pages/login/login';
 import { RegisterComponent } from './pages/register/register';
+import { CheckoutComponent } from './pages/checkout/checkout';
 export const routes: Routes = [
   {
     path: '',
@@ -35,7 +36,12 @@ export const routes: Routes = [
   path: 'profile',
   loadComponent: () => import('./pages/profile/profile').then(m => (m as any).ProfileComponent)
 }
-  ,
+  ,  {
+  path: 'order-confirmation/:id',
+  loadComponent: () => import('./pages/order-confirmation/order-confirmation').then(m => (m as any).OrderConfirmation)
+},
+{ path: 'checkout', component: CheckoutComponent },
+  
   {
     path: '**',
     redirectTo: '',
