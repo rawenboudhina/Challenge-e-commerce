@@ -2,7 +2,8 @@
   <!-- HERO CAROUSEL -->
   <section class="hero-carousel">
     <div class="carousel-container">
-@for (product of promotedProducts; track trackByProductId($index, product)) {        <div class="carousel-slide" [class.active]="currentSlide === $index">
+      @for (product of promotedProducts; track trackByProductId($index, product)) {
+        <div class="carousel-slide" [class.active]="currentSlide === $index">
           <div class="slide-background">
             <img [src]="product.image" [alt]="product.title" loading="lazy">
             <div class="slide-overlay"></div>
@@ -15,15 +16,19 @@
                 } @else if (product.discountPercentage) {
                   <p class="slide-subtitle">-{{ product.discountPercentage }}%</p>
                 }
-                
+
                 <h1 class="slide-title">{{ product.title }}</h1>
+
+                <!-- PRIX AVEC BARRÉ TUNISIEN -->
                 <div class="price-container">
-                  <span class="current-price">{{ product.price | currency:'EUR' }}</span>
                   @if (product.discountPercentage) {
-                    <span class="original-price">
-                      {{ (product.price * 100 / (100 - product.discountPercentage)) | currency:'EUR' }}
+                    <span class="original-price-hero">
+                      {{ getOriginalPrice(product) | number:'1.3-3' }} DT
                     </span>
                   }
+                  <span class="current-price-hero">
+                    {{ product.price | number:'1.3-3' }} DT
+                  </span>
                 </div>
 
                 <p class="slide-description">{{ product.description | slice:0:120 }}...</p>
@@ -36,21 +41,23 @@
                   </button>
                 </div>
               </div>
-@if ((product.discountPercentage ?? 0) > 15) {
-  <span class="carousel-promo-badge">-{{ product.discountPercentage }}% PROMO FLASH</span>
-}
+
+              @if ((product.discountPercentage ?? 0) > 15) {
+                <span class="carousel-promo-badge">-{{ product.discountPercentage }}% PROMO FLASH</span>
+              }
             </div>
           </div>
         </div>
       }
+
       <button class="carousel-btn prev" (click)="prevSlide()" aria-label="Précédent">◄</button>
       <button class="carousel-btn next" (click)="nextSlide()" aria-label="Suivant">►</button>
       <div class="carousel-indicators">
-@for (product of promotedProducts; track trackByProductId($index, product)) {          <button
-            class="indicator"
-            [class.active]="currentSlide === $index"
-            (click)="goToSlide($index)"
-            [attr.aria-label]="'Slide ' + ($index + 1)">
+        @for (product of promotedProducts; track trackByProductId($index, product)) {
+          <button class="indicator"
+                  [class.active]="currentSlide === $index"
+                  (click)="goToSlide($index)"
+                  [attr.aria-label]="'Slide ' + ($index + 1)">
           </button>
         }
       </div>
@@ -59,7 +66,8 @@
 
   <!-- CATÉGORIES -->
   <div class="tech-categories-grid">
-@for (category of categories; track trackByCategory($index, category)) {      <a [routerLink]="['/products']" [queryParams]="{ category: category.slug }" class="tech-category-card">
+    @for (category of categories; track trackByCategory($index, category)) {
+      <a [routerLink]="['/products']" [queryParams]="{ category: category.slug }" class="tech-category-card">
         <img [src]="category.image" [alt]="category.name" class="category-image" loading="lazy">
         <div class="category-overlay"></div>
         <div class="category-content">
@@ -76,20 +84,23 @@
     <div class="container">
       <div class="section-header-featured">
         <div class="header-content">
-          <span class="section-badge">⭐ Top 2025</span>
+          <span class="section-badge">Top 2025</span>
           <h2 class="section-title-featured">Meilleures Ventes</h2>
           <p class="section-subtitle-featured">Les plus populaires du moment</p>
         </div>
         <a routerLink="/products" class="view-all-btn-featured">Voir tout →</a>
       </div>
+
       <div *ngIf="loading" class="loading-container-premium">
         <div class="loading-spinner-wrapper">
           <div class="spinner-premium"></div>
           <p>Chargement des pépites...</p>
         </div>
       </div>
+
       <div class="products-grid-featured" *ngIf="!loading && featuredProducts.length > 0">
-      @for (product of featuredProducts; track trackByProductId($index, product)) {          <div class="product-card-wrapper" [style.animation-delay.ms]="$index * 80">
+        @for (product of featuredProducts; track trackByProductId($index, product)) {
+          <div class="product-card-wrapper" [style.animation-delay.ms]="$index * 80">
             <app-product-card [product]="product" (addToCart)="onAddToCart($event)"></app-product-card>
             @if (product.discountPercentage ?? 0 > 20) {
               <span class="product-badge badge-discount">-{{ product.discountPercentage }}%</span>
@@ -103,26 +114,7 @@
     </div>
   </section>
 
-  <!-- Newsletter -->
-  <section class="newsletter-section">
-    <div class="container">
-      <div class="newsletter-card">
-        <div class="newsletter-content">
-          <h2 class="newsletter-title">Restez Connecté</h2>
-          <p class="newsletter-text">Recevez les meilleures offres, nouveautés et bons plans directement dans votre boîte mail !</p>
-          <div class="newsletter-form">
-            <input type="email" placeholder="Votre email..." class="newsletter-input" aria-label="Email">
-            <button class="btn btn-primary btn-lg">S'abonner</button>
-          </div>
-        </div>
-        <div class="newsletter-visual">
-          <span class="newsletter-icon">✨</span>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Features -->
+  <!-- Features (VERSION TUNISIE) -->
   <section class="features-section">
     <div class="container">
       <div class="features-grid">
@@ -141,8 +133,8 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
             </svg>
           </div>
-          <h3 class="feature-title">Livraison Rapide</h3>
-          <p class="feature-text">Gratuite en 24-48h partout en France</p>
+          <h3 class="feature-title">Livraison Express</h3>
+          <p class="feature-text">Gratuite dès 299 DT • 24-48h partout en Tunisie</p>
         </div>
         <div class="feature-card">
           <div class="feature-icon-wrapper">
@@ -151,7 +143,7 @@
             </svg>
           </div>
           <h3 class="feature-title">Paiement Sécurisé</h3>
-          <p class="feature-text">Transactions 100% cryptées</p>
+          <p class="feature-text">Carte • Virement • Espèces à la livraison</p>
         </div>
         <div class="feature-card">
           <div class="feature-icon-wrapper">
@@ -160,7 +152,7 @@
             </svg>
           </div>
           <h3 class="feature-title">Support 24/7</h3>
-          <p class="feature-text">Équipe disponible à tout moment</p>
+          <p class="feature-text">WhatsApp • Téléphone • Chat en direct</p>
         </div>
       </div>
     </div>

@@ -183,4 +183,8 @@ private getFallbackProducts(): Product[] {
     }
   ] as Product[];
 }
+getOriginalPrice(product: any): number {
+  if (!product.discountPercentage) return product.price;
+  return Math.round(product.price * 10000 / (100 - product.discountPercentage)) / 100;
+}
 }

@@ -1,1 +1,108 @@
 <p>profile works!</p>
+<!-- src/app/features/profile/profile.component.html -->
+<div class="profile-page">
+  <div class="container">
+    <h1>Mon Profil</h1>
+
+    <div class="user-greeting">
+      <p>Bonjour, <strong>{{ user?.firstName }} {{ user?.lastName }}</strong></p>
+    </div>
+
+    <!-- Onglets -->
+    <div class="tabs">
+      <button
+        *ngFor="let tab of tabs"
+        [class.active]="activeTab === tab.id"
+        (click)="setActiveTab(tab.id)"
+        class="tab-btn"
+      >
+        {{ tab.label }}
+      </button>
+    </div>
+
+    <!-- Contenu -->
+    <div class="tab-content">
+      <!-- Profil -->
+      <div *ngIf="activeTab === 'profile'" class="tab-pane">
+        <form [formGroup]="profileForm" (ngSubmit)="updateProfile()" class="profile-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Prénom</label>
+              <input type="text" formControlName="firstName" />
+            </div>
+            <div class="form-group">
+              <label>Nom</label>
+              <input type="text" formControlName="lastName" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" formControlName="email" />
+          </div>
+          <div class="form-group">
+            <label>Adresse</label>
+            <textarea formControlName="address" rows="3"></textarea>
+          </div>
+          <button type="submit" class="btn-primary" [disabled]="profileForm.invalid || profileForm.pristine">
+            Mettre à jour le profil
+          </button>
+          <p *ngIf="updateSuccess" class="success-msg">Profil mis à jour avec succès !</p>
+        </form>
+      </div>
+
+     <!-- Commandes -->
+      <div *ngIf="activeTab === 'orders'" class="tab-pane">
+        <div *ngIf="orders.length === 0" class="empty-state">Aucune commande.</div>
+        <div *ngFor="let order of orders" class="order-card">
+          <div class="order-header">
+            <strong>Commande #{{ order.id }}</strong>
+            <span class="status" [ngClass]="order.status">{{ order.status }}</span>
+          </div>
+          <div class="order-date">{{ order.date }}</div>
+          <div class="order-total"><strong>Total: {{ order.total | number:'1.3-3' }} DT</strong></div>
+        </div>
+      </div>
+
+      <!-- FAVORIS REELS -->
+      <div *ngIf="activeTab === 'favorites'" class="tab-pane">
+        <div *ngIf="favorites.length === 0" class="empty-state">Votre wishlist est vide.</div>
+        <div class="favorites-grid">
+          <div *ngFor="let fav of favorites" class="favorite-item">
+            <img [src]="fav.image || '/assets/fallback.jpg'" [alt]="fav.title" />
+            <div class="favorite-info">
+              <h4>{{ fav.title }}</h4>
+              <p class="price">{{ fav.price | number:'1.3-3' }} DT</p>
+              <button class="btn-remove" (click)="removeFavorite(fav.id)">Retirer</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Adresses -->
+      <!-- ADRESSES TAB -->
+<div *ngIf="activeTab === 'addresses'" class="tab-pane">
+  <div class="addresses-header">
+    <h3>Mes adresses de livraison</h3>
+    <button class="btn-add" (click)="addAddress()">+ Ajouter une adresse</button>
+  </div>
+
+  <div class="address-list">
+    <div *ngFor="let addr of addresses; let i = index" class="address-card"
+         [class.main-address]="i === 0">
+      <div class="address-header">
+        <strong>{{ i === 0 ? 'Adresse principale' : 'Adresse ' + i }}</strong>
+        <span class="main-badge" *ngIf="i === 0">PRINCIPALE</span>
+      </div>
+      <p class="address-text">{{ addr }}</p>
+      <button class="btn-remove" (click)="removeAddress(i)" *ngIf="i !== 0">
+        Supprimer
+      </button>
+    </div>
+  </div>
+
+  <div class="empty-state" *ngIf="addresses.length === 0">
+    Aucune adresse enregistrée.
+  </div>
+</div>
+    </div>
+  </div>
+</div>

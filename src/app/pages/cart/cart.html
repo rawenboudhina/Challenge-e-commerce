@@ -23,7 +23,7 @@
             </div>
           </div>
           <div class="item-price">
-            <span class="price-unit">{{ item.product.price | currency:'EUR' }}</span>
+            <span class="price-unit">{{ item.product.price | currency:'TND' }}</span>
           </div>
           <div class="item-quantity">
             <button (click)="decreaseQuantity(item.product.id)" class="qty-btn">-</button>
@@ -31,7 +31,7 @@
             <button (click)="increaseQuantity(item.product.id)" class="qty-btn">+</button>
           </div>
           <div class="item-subtotal">
-            {{ getSubtotal(item) | currency:'EUR' }}
+            {{ getSubtotal(item) | currency:'TND' }}
           </div>
           <button class="btn-remove" (click)="removeFromCart(item.product.id)">Supprimer</button>
         </div>
@@ -44,15 +44,15 @@
         <h3>Récapitulatif</h3>
         <div class="summary-row">
           <span>Sous-total</span>
-          <span>{{ getSubtotalAll() | currency:'EUR' }}</span>
+          <span>{{ getSubtotalAll() | currency:'TND' }}</span>
         </div>
         <div class="summary-row shipping">
           <span>Frais de livraison</span>
-          <span>{{ getShippingFee() | currency:'EUR' }}</span>
+          <span>{{ getShippingFee() | currency:'TND' }}</span>
         </div>
         <div class="summary-row total">
           <span>Total</span>
-          <strong>{{ getTotal() | currency:'EUR' }}</strong>
+          <strong>{{ getTotal() | currency:'TND' }}</strong>
         </div>
       </div>
       <button class="btn-proceed" (click)="proceedToCheckout()">Procéder au paiement</button>

@@ -19,6 +19,7 @@
   <!-- CORPS -->
   <div class="card-body">
     <h3 class="card-title">{{ product.title }}</h3>
+
     <div class="product-rating">
       <div class="stars">
         @for (star of getStars(); track star.index) {
@@ -31,12 +32,13 @@
       <span class="rating-count">({{ product.rating?.count || 0 }})</span>
     </div>
 
+    <!-- PRIX EN DT (SANS ERREUR DE LOCALE) -->
     <div class="price-container">
       <span *ngIf="product.discountPercentage" class="original-price">
-        {{ originalPrice | currency:'EUR':'symbol':'1.2-2' }}
+        {{ originalPrice | number:'1.3-3' }} DT
       </span>
       <span class="current-price">
-        {{ product.price | currency:'EUR':'symbol':'1.2-2' }}
+        {{ product.price | number:'1.3-3' }} DT
       </span>
     </div>
 
@@ -48,34 +50,21 @@
 
     <!-- ACTIONS RAPIDES -->
     <div class="quick-actions">
-
-<!-- CŒUR → UNIQUEMENT SI CONNECTÉ -->
-<button *ngIf="wishlistService.isLoggedIn$ | async"
-        class="wishlist-btn"
-        (click)="onToggleWishlist($event)"
-        [class.active]="isWishlisted"
-        [title]="isWishlisted ? 'Retirer de la wishlist' : 'Ajouter à la wishlist'">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-  </svg>
-</button>
-      <!-- CŒUR GRISÉ → SI PAS CONNECTÉ -->
-    <!--   <button *ngIf="!(wishlistService.isLoggedIn$ | async)"
-              class="wishlist-btn disabled"
-              title="Connectez-vous pour ajouter à la wishlist"
-              disabled>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.4">
+      <button *ngIf="wishlistService.isLoggedIn$ | async"
+              class="wishlist-btn"
+              (click)="onToggleWishlist($event)"
+              [class.active]="isWishlisted"
+              [title]="isWishlisted ? 'Retirer de la wishlist' : 'Ajouter à la wishlist'">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
         </svg>
-      </button> -->
+      </button>
 
-      <!-- ACHAT RAPIDE -->
       <button class="quick-buy-btn"
               (click)="onQuickBuy($event); $event.stopPropagation(); $event.preventDefault()"
               [disabled]="!product.stock || product.stock <= 0">
         Achat rapide
       </button>
-
     </div>
   </div>
 </div>

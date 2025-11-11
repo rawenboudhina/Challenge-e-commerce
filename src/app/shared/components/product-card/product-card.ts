@@ -10,7 +10,7 @@ import {
   OnInit,
   OnDestroy
 } from '@angular/core';
-import { CommonModule, CurrencyPipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { Product } from '../../../core/models/product.model';
 import { WishlistService } from '../../../core/services/wishlist.service';
@@ -19,7 +19,7 @@ import { AuthService } from '../../../core/services/auth.service';
 @Component({
   selector: 'app-product-card',
   standalone: true,
-  imports: [CommonModule, CurrencyPipe, RouterModule],
+  imports: [CommonModule, RouterModule],
   templateUrl: './product-card.html',
   styleUrls: ['./product-card.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush

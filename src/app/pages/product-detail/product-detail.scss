@@ -165,16 +165,66 @@ stroke: #64748b;
   align-items: center;
 
   .quantity {
+  display: flex;
+  background: #1e293b;
+  border-radius: 1rem;
+  overflow: hidden;
+  height: 56px;                    // HAUTEUR FIXE → PLUS JAMAIS MINCE !
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+
+  // BOUTONS - et +
+  button {
+    width: 56px;
+    height: 100%;
+    border: none;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: white;
+    font-size: 1.4rem;
+    font-weight: 900;
+    cursor: pointer;
+    transition: all 0.3s ease;
     display: flex;
-    background: #1e293b;
-    border-radius: 1rem;
-    overflow: hidden;
-    button, input {
-      border: none; background: transparent; color: white; padding: 0.75rem; font-size: 1.1rem;
+    align-items: center;
+    justify-content: center;
+
+    &:hover:not(:disabled) {
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      transform: scale(1.1);
     }
-    button { width: 50px; cursor: pointer; &:disabled { opacity: 0.4; }}
-    input { width: 70px; text-align: center; font-weight: 700; }
+
+    &:disabled {
+      background: #475569;
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
   }
+
+  // INPUT AU MILIEU
+  input[type="number"] {
+    width: 80px;
+    height: 100%;
+    border: none;
+    background: transparent;
+    color: white;
+    font-size: 1.3rem;
+    font-weight: 900;
+    text-align: center;
+    outline: none;
+
+    // VIRUS LES FLÈCHES (TOUS NAVIGATEURS)
+    -moz-appearance: textfield;
+    appearance: textfield;
+    &::-webkit-outer-spin-button,
+    &::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    &:focus {
+      background: rgba(59, 130, 246, 0.2);
+    }
+  }
+}
 
   .btn-add {
     flex: 1;

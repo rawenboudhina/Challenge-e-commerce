@@ -17,22 +17,29 @@
       "lastName": "ahmed",
       "address": "Mateur",
       "password": "ahmed123"
+    },
+    {
+      "id": "d248",
+      "nom": "Rawen",
+      "prenom": "Rawen",
+      "email": "Rawen.123@gmail.com",
+      "password": "Rawen123",
+      "adresse": "Mateur"
     }
   ],
   "wishlists": [
     {
       "id": "1",
-      "userId": 1762353008395,
+      "userId": "1762353008395",
       "products": [
-        182,
-        183,
-        184,
-        181,
-        179,
         47,
-        180,
         9,
-        81
+        78,
+        43,
+        85,
+        45,
+        7,
+        79
       ]
     },
     {
@@ -78,16 +85,8 @@
       "userId": "1762353008395",
       "items": [
         {
-          "productId": 47,
-          "quantity": 1
-        },
-        {
-          "productId": 46,
-          "quantity": 1
-        },
-        {
-          "productId": 9,
-          "quantity": 1
+          "productId": 79,
+          "quantity": 2
         }
       ]
     }

@@ -38,7 +38,7 @@ export class WishlistService {
     });
   }
 
-  private loadWishlist(): void {
+  public loadWishlist(): void {
     this.http.get<{ userId: number; products: number[] }[]>(
       `${this.apiUrl}/wishlists?userId=${this.userId}`
     ).pipe(
