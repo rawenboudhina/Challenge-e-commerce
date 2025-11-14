@@ -44,6 +44,15 @@
       "lastName": "Manai",
       "address": "Mornag",
       "password": "amine123"
+    },
+    {
+      "id": 1763160814672,
+      "email": "Soumaya@gmail.com",
+      "username": "Soumaya",
+      "firstName": "Soumaya",
+      "lastName": "Aniba",
+      "address": "Rades Chatt",
+      "password": "Soumaya123"
     }
   ],
   "wishlists": [
@@ -75,8 +84,22 @@
     },
     {
       "userId": 1763160136802,
-      "products": [],
+      "products": [
+        79,
+        85,
+        43
+      ],
       "id": "new4-ot"
+    },
+    {
+      "userId": 1763160814672,
+      "products": [
+        9,
+        84,
+        82,
+        44
+      ],
+      "id": "wPIE3Ap"
     }
   ],
   "carts": [
@@ -144,10 +167,64 @@
       "items": [
         {
           "productId": 183,
-          "quantity": 4
+          "quantity": 1
+        },
+        {
+          "productId": 182,
+          "quantity": 1
+        },
+        {
+          "productId": 181,
+          "quantity": 1
+        },
+        {
+          "productId": 184,
+          "quantity": 2
+        },
+        {
+          "productId": 151,
+          "quantity": 2
         }
       ],
       "id": "SK9YyK1"
+    },
+    {
+      "userId": "1763160814672",
+      "items": [
+        {
+          "productId": 7,
+          "quantity": 1
+        },
+        {
+          "productId": 81,
+          "quantity": 2
+        },
+        {
+          "productId": 44,
+          "quantity": 1
+        },
+        {
+          "productId": 10,
+          "quantity": 1
+        },
+        {
+          "productId": 47,
+          "quantity": 1
+        },
+        {
+          "productId": 80,
+          "quantity": 1
+        },
+        {
+          "productId": 43,
+          "quantity": 1
+        },
+        {
+          "productId": 83,
+          "quantity": 1
+        }
+      ],
+      "id": "1tESeGZ"
     }
   ],
   "orders": [

@@ -16,6 +16,8 @@ import { Product } from '../../../models/product.model';
 import { WishlistService } from '../../../services/wishlist.service';
 import { CartService } from '../../../services/cart.service';
 // import { AuthService } from '../../../services/auth.service';  
+import Swal from 'sweetalert2';  // Import pour SweetAlert
+
 @Component({
   selector: 'app-product-card',
   standalone: true,
@@ -28,12 +30,10 @@ export class ProductCardComponent implements OnInit, OnDestroy {
   @Input() product!: Product;
   @Output() addToCart = new EventEmitter<Product>();
   @Output() quickBuy = new EventEmitter<Product>();
-
   wishlistService = inject(WishlistService);
   private cartService = inject(CartService);
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
-
   private subscriptionWishlist: any;
   isWishlisted = false;
 
@@ -47,6 +47,7 @@ export class ProductCardComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.subscriptionWishlist?.unsubscribe();
   }
+
   // === PRIX ===
   get originalPrice(): number {
     if (this.product.discountPercentage && this.product.discountPercentage > 0) {
@@ -74,19 +75,39 @@ export class ProductCardComponent implements OnInit, OnDestroy {
     if (!this.product.stock || this.product.stock <= 0) return;
     this.cartService.addToCart(this.product);
     this.addToCart.emit(this.product);
+    // Affiche une alerte attractive de succès avec SweetAlert
+    Swal.fire({
+      title: 'Ajouté au panier !',
+      text: `${this.product.title} a été ajouté à votre panier.`,
+      icon: 'success',
+      timer: 2000,  // Ferme automatiquement après 2 secondes
+      showConfirmButton: false,
+      position: 'top-end',  // Position en haut à droite pour une notification discrète
+      toast: true  // Mode toast pour une notification non bloquante
+    });
   }
 
   onToggleWishlist($event: Event): void {
     $event.stopPropagation();
-
     // CORRIGÉ : Utilise currentUserId (public getter)
     if (!this.wishlistService.currentUserId) {
       this.router.navigate(['/login'], { queryParams: { returnUrl: this.router.url } });
       return;
     }
-
+    const wasWishlisted = this.isWishlisted;  // Capture l'état avant toggle pour le message
     this.wishlistService.toggle(this.product);
     // Réactivité gérée via wishlist$
+
+    // Affiche une alerte attractive avec SweetAlert basée sur l'action
+    const action = wasWishlisted ? 'retiré des' : 'ajouté aux';
+    Swal.fire({
+      title: `${this.product.title} ${action} favoris !`,
+      icon: 'success',
+      timer: 2000,  // Ferme automatiquement après 2 secondes
+      showConfirmButton: false,
+      position: 'top-end',  // Position en haut à droite pour une notification discrète
+      toast: true  // Mode toast pour une notification non bloquante
+    });
   }
 
   onQuickBuy($event: Event): void {
@@ -94,6 +115,16 @@ export class ProductCardComponent implements OnInit, OnDestroy {
     if (!this.product.stock || this.product.stock <= 0) return;
     this.cartService.addToCart(this.product);
     this.quickBuy.emit(this.product);
+    // Affiche une alerte attractive de succès avec SweetAlert avant redirection
+    Swal.fire({
+      title: 'Ajouté au panier !',
+      text: `${this.product.title} a été ajouté à votre panier.`,
+      icon: 'success',
+      timer: 2000,  // Ferme automatiquement après 2 secondes
+      showConfirmButton: false,
+      position: 'top-end',
+      toast: true
+    });
     this.router.navigate(['/cart']);
   }
 
