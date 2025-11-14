@@ -1,4 +1,3 @@
-// src/app/core/services/cart.service.ts
 import { Injectable, OnDestroy } from '@angular/core';
 import { BehaviorSubject, Observable, of, forkJoin, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
@@ -8,8 +7,8 @@ import { HttpClient } from '@angular/common/http';
 import { switchMap, map } from 'rxjs/operators';
 
 interface CartResponse {
-  id: number;
-  userId: number;
+  id: string;  // ← Changé en string
+  userId: string;  // ← Changé en string
   items: { productId: number; quantity: number }[];
 }
 
@@ -38,7 +37,7 @@ export class CartService implements OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe(user => {
         if (user) {
-          this.loadUserCart(user.id);
+          this.loadUserCart(user.id);  // user.id devrait être string
         } else {
           this.loadLocalCart();
         }
@@ -58,13 +57,11 @@ export class CartService implements OnDestroy {
 
   private fetchProductsForCart(cart: CartResponse): Observable<CartItem[]> {
     if (cart.items.length === 0) return of([]);
-
     const requests = cart.items.map(item =>
       this.http.get<Product>(`${this.apiUrl}/products/${item.productId}`).pipe(
         map(product => ({ product, quantity: item.quantity }))
       )
     );
-
     return forkJoin(requests).pipe(
       map(fetchedItems => {
         this.cartItems = [];
@@ -81,22 +78,33 @@ export class CartService implements OnDestroy {
     );
   }
 
-  private loadUserCart(userId: number): void {
+  private loadUserCart(userId: string | number): void {  // accept number or string (user.id may be number)
     if (this.isLoadingCart) return;
     this.isLoadingCart = true;
-
-    this.http.get<CartResponse[]>(`${this.apiUrl}/carts?userId=${userId}`).pipe(
+    const uid = String(userId);
+    this.http.get<CartResponse[]>(`${this.apiUrl}/carts?userId=${uid}`).pipe(
       switchMap(carts => {
-        if (carts.length > 0) {
-          return this.fetchProductsForCart(carts[0]);
+        // Cleanup : Supprime les carts extras si >1
+        if (carts.length > 1) {
+          const extras = carts.slice(1);
+          const deleteRequests = extras.map(extra => this.http.delete(`${this.apiUrl}/carts/${extra.id}`));
+          forkJoin(deleteRequests).subscribe();  // Supprime async sans attendre
         }
-        return this.http.post<CartResponse>(`${this.apiUrl}/carts`, { userId, items: [] }).pipe(
-          switchMap(newCart => this.fetchProductsForCart(newCart))
-        );
+        let cartToUse: CartResponse;
+        if (carts.length > 0) {
+          cartToUse = carts[0];
+        } else {
+          // Crée un nouveau
+          return this.http.post<CartResponse>(`${this.apiUrl}/carts`, { userId: uid, items: [] }).pipe(
+            switchMap(newCart => this.fetchProductsForCart(newCart))
+          );
+        }
+        return this.fetchProductsForCart(cartToUse);
       })
     ).subscribe({
       next: (items) => {
         this.cartItems = items;
+        this.mergeLocalCartOnLogin();  // ← AJOUT ICI : Merge après chargement serveur
         this.cartSubject.next([...this.cartItems]);
         this.isLoadingCart = false;
       },
@@ -106,41 +114,33 @@ export class CartService implements OnDestroy {
     });
   }
 
-private lastAddTime = new Map<number, number>(); // par produit
-
-addToCart(product: Product, quantity: number = 1): void {
-  const now = Date.now();
-  const lastTime = this.lastAddTime.get(product.id) || 0;
-
-  if (now - lastTime < 500) {
-    console.warn('Double ajout détecté, ignoré pour', product.title);
-    return;
+  private lastAddTime = new Map<number, number>(); // par produit
+  addToCart(product: Product, quantity: number = 1): void {
+    const now = Date.now();
+    const lastTime = this.lastAddTime.get(product.id) || 0;
+    if (now - lastTime < 500) {
+      console.warn('Double ajout détecté, ignoré pour', product.title);
+      return;
+    }
+    this.lastAddTime.set(product.id, now);
+    if (this.isLoadingCart) return;
+    const existingItem = this.cartItems.find(item => item.product.id === product.id);
+    if (existingItem) {
+      existingItem.quantity += quantity;
+    } else {
+      this.cartItems.push({ product, quantity });
+    }
+    this.cartSubject.next([...this.cartItems]);
+    if (this.authService.isAuthenticated()) {
+      this.saveUserCart();
+    } else {
+      this.saveLocalCart();
+    }
   }
-
-  this.lastAddTime.set(product.id, now);
-
-  if (this.isLoadingCart) return;
-
-  const existingItem = this.cartItems.find(item => item.product.id === product.id);
-  if (existingItem) {
-    existingItem.quantity += quantity;
-  } else {
-    this.cartItems.push({ product, quantity });
-  }
-
-  this.cartSubject.next([...this.cartItems]);
-
-  if (this.authService.isAuthenticated()) {
-    this.saveUserCart();
-  } else {
-    this.saveLocalCart();
-  }
-}
 
   private saveUserCart(): void {
     const user = this.authService.getCurrentUser();
     if (!user) return;
-
     this.http.get<CartResponse[]>(`${this.apiUrl}/carts?userId=${user.id}`).pipe(
       switchMap(carts => {
         const items = this.cartItems.map(item => ({
@@ -198,7 +198,6 @@ addToCart(product: Product, quantity: number = 1): void {
   mergeLocalCartOnLogin(): void {
     const localCartJson = localStorage.getItem(this.localCartKey);
     if (!localCartJson || !this.authService.isAuthenticated()) return;
-
     let localCart: CartItem[];
     try {
       localCart = JSON.parse(localCartJson);
@@ -206,12 +205,10 @@ addToCart(product: Product, quantity: number = 1): void {
       localStorage.removeItem(this.localCartKey);
       return;
     }
-
     if (localCart.length === 0) {
       localStorage.removeItem(this.localCartKey);
       return;
     }
-
     let hasChanges = false;
     localCart.forEach(localItem => {
       const existingItem = this.cartItems.find(item => item.product.id === localItem.product.id);
@@ -223,7 +220,6 @@ addToCart(product: Product, quantity: number = 1): void {
         hasChanges = true;
       }
     });
-
     if (hasChanges) {
       this.saveUserCart();
       this.cartSubject.next([...this.cartItems]);
@@ -235,13 +231,12 @@ addToCart(product: Product, quantity: number = 1): void {
     this.destroy$.next();
     this.destroy$.complete();
   }
+
   // Ajoute ça dans ton CartService (n'importe où dans la classe)
-
-public getItemCount(): number {
-  return this.cartItems.reduce((count, item) => count + item.quantity, 0);
-}
-
-public getTotal(): number {
-  return this.cartItems.reduce((total, item) => total + (item.product.price * item.quantity), 0);
-}
+  public getItemCount(): number {
+    return this.cartItems.reduce((count, item) => count + item.quantity, 0);
+  }
+  public getTotal(): number {
+    return this.cartItems.reduce((total, item) => total + (item.product.price * item.quantity), 0);
+  }
 }

@@ -20,11 +20,30 @@
     },
     {
       "id": "d248",
-      "nom": "Rawen",
-      "prenom": "Rawen",
       "email": "Rawen.123@gmail.com",
-      "password": "Rawen123",
-      "adresse": "Mateur"
+      "username": "Rawen",
+      "firstName": "Rawen",
+      "lastName": "Rawen",
+      "address": "Mateur",
+      "password": "Rawen123"
+    },
+    {
+      "id": 1763158514466,
+      "email": "Rawenboudhina@gmail.com",
+      "username": "Rawenboudhina",
+      "firstName": "Rawen",
+      "lastName": "Boudhina",
+      "address": "Rades Meliane",
+      "password": "Rawen123"
+    },
+    {
+      "id": 1763160136802,
+      "email": "aminemanai@gmail.com",
+      "username": "aminemanai",
+      "firstName": "Amine",
+      "lastName": "Manai",
+      "address": "Mornag",
+      "password": "amine123"
     }
   ],
   "wishlists": [
@@ -48,37 +67,87 @@
         8,
         178
       ]
+    },
+    {
+      "userId": 1763158514466,
+      "products": [],
+      "id": "imBoVSK"
+    },
+    {
+      "userId": 1763160136802,
+      "products": [],
+      "id": "new4-ot"
     }
   ],
   "carts": [
     {
-      "id": "1",
-      "userId": 1,
+      "id": "8b37",
+      "userId": "1762353008395",
       "items": [
         {
-          "productId": 1,
-          "quantity": 2
-        },
-        {
-          "productId": 3,
-          "quantity": 1
+          "productId": 151,
+          "quantity": 4
         }
       ]
     },
     {
       "id": "2dd2",
       "userId": "1762368754079",
+      "items": [
+        {
+          "productId": 183,
+          "quantity": 2
+        },
+        {
+          "productId": 184,
+          "quantity": 1
+        },
+        {
+          "productId": 182,
+          "quantity": 1
+        },
+        {
+          "productId": 181,
+          "quantity": 2
+        },
+        {
+          "productId": 151,
+          "quantity": 1
+        }
+      ]
+    },
+    {
+      "id": "rawen-cart",
+      "userId": "d248",
       "items": []
     },
     {
-      "id": "3393",
-      "userId": "1762368754079",
-      "items": []
+      "userId": 1763158514466,
+      "items": [
+        {
+          "productId": 84,
+          "quantity": 1
+        },
+        {
+          "productId": 85,
+          "quantity": 1
+        },
+        {
+          "productId": 182,
+          "quantity": 3
+        }
+      ],
+      "id": "yRa8LTc"
     },
     {
-      "id": "8b37",
-      "userId": "1762353008395",
-      "items": []
+      "userId": "1763160136802",
+      "items": [
+        {
+          "productId": 183,
+          "quantity": 4
+        }
+      ],
+      "id": "SK9YyK1"
     }
   ],
   "orders": [

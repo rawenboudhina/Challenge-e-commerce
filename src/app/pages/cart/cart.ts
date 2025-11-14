@@ -1,15 +1,17 @@
-// src/app/pages/cart/cart.component.ts
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CartService } from '../../services/cart.service';
 import { AuthService } from '../../services/auth.service';
 import { Product, CartItem } from '../../models/product.model';
-import { Router, RouterModule } from '@angular/router'; 
+import { Router, RouterModule } from '@angular/router';
+import Swal from 'sweetalert2';  // ← Ajoutez cet import pour SweetAlert2
+
 interface Spec {
   key: string;
   value: string;
 }
+
 @Component({
   selector: 'app-cart',
   standalone: true,
@@ -17,7 +19,7 @@ interface Spec {
   templateUrl: './cart.html',
   styleUrls: ['./cart.scss']
 })
-export class CartComponent implements OnInit, OnDestroy {  // ← CHANGÉ ICI
+export class CartComponent implements OnInit, OnDestroy {
   cartItems: CartItem[] = [];
   loading = true;
   private sub: any;
@@ -25,7 +27,7 @@ export class CartComponent implements OnInit, OnDestroy {  // ← CHANGÉ ICI
   constructor(
     private cartService: CartService,
     private authService: AuthService,
-    private router: Router 
+    private router: Router
   ) {}
 
   ngOnInit() {
@@ -73,19 +75,68 @@ export class CartComponent implements OnInit, OnDestroy {  // ← CHANGÉ ICI
     this.cartService.updateQuantity(productId, quantity);
   }
 
-  removeFromCart(productId: number): void {
-    if (confirm('Supprimer cet article ?')) {
-      this.cartService.removeFromCart(productId);
-    }
+ removeFromCart(productId: number): void {
+    // Remplace le confirm natif par SweetAlert pour une confirmation attractive
+    Swal.fire({
+      title: 'Supprimer cet article ?',
+      text: 'Êtes-vous sûr de vouloir retirer cet article de votre panier ?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Oui, supprimer',
+      cancelButtonText: 'Annuler',
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.cartService.removeFromCart(productId);
+        // Optionnel : Afficher une confirmation de succès après suppression
+        Swal.fire({
+          title: 'Supprimé !',
+          text: 'L\'article a été retiré de votre panier.',
+          icon: 'success',
+          timer: 2000,  // Ferme automatiquement après 2 secondes
+          showConfirmButton: false
+        });
+      }
+    });
   }
 
- proceedToCheckout(): void {
+  proceedToCheckout(): void {
     if (this.cartItems.length === 0) {
-      alert('Votre panier est vide. Ajoutez des articles avant de continuer.');
-      this.router.navigate(['/products']); // Optionnel : Rediriger vers produits
+      // Alerte attractive pour panier vide
+      Swal.fire({
+        title: 'Panier vide',
+        text: 'Votre panier est vide. Ajoutez des articles avant de continuer.',
+        icon: 'info',
+        confirmButtonText: 'OK',
+        confirmButtonColor: '#3085d6'
+      }).then(() => {
+        this.router.navigate(['/products']);  // Rediriger vers produits (optionnel)
+      });
       return;
     }
-    this.router.navigate(['/checkout']); // ← Redirection vers la page de paiement
+
+    if (!this.authService.isAuthenticated()) {
+      // Alerte attractive pour connexion requise
+      Swal.fire({
+        title: 'Connexion requise',
+        text: 'Connexion requise pour procéder au paiement. Voulez-vous vous connecter ?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Oui, me connecter',
+        cancelButtonText: 'Non, annuler',
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          this.router.navigate(['/login'], { queryParams: { returnUrl: '/checkout' } });
+        }
+      });
+      return;
+    }
+
+    // Si tout est OK, rediriger vers checkout
+    this.router.navigate(['/checkout']);
   }
 
   getProductSpecs(product: Product): Spec[] {
