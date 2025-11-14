@@ -1,14 +1,14 @@
 import { Component, OnInit, OnDestroy, HostListener, ElementRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
-import { CartService } from '../../../core/services/cart.service';
-import { AuthService } from '../../../core/services/auth.service';
-import { ProductService } from '../../../core/services/product.service';
+import { CartService } from '../../../services/cart.service';
+import { AuthService } from '../../../services/auth.service';
+import { ProductService } from '../../../services/product.service';
 import { FormsModule } from '@angular/forms';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { debounceTime, distinctUntilChanged, switchMap, catchError } from 'rxjs/operators';
 import { Subject, of } from 'rxjs';
-import { Category } from '../../../core/models/category.model';
+import { Category } from '../../../models/category.model';
 @Component({
   selector: 'app-header',
   standalone: true,

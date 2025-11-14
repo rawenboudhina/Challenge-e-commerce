@@ -1,50 +1,76 @@
 // src/app/features/profile/profile.component.scss
+
 .profile-page {
   padding: 2rem 0;
   min-height: 80vh;
+  background: #f8f9fa; // Fond clair et moderne
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
 }
 
 .user-greeting {
-  margin-bottom: 1.5rem;
-  font-size: 1.1rem;
-  color: #555;
+  margin-bottom: 2rem;
+  font-size: 1.2rem;
+  color: #4a4a4a;
+  text-align: center;
 }
 
 .tabs {
   display: flex;
-  border-bottom: 2px solid #eee;
-  margin-bottom: 2rem;
+  justify-content: center;
+  border-bottom: 1px solid #dee2e6;
+  margin-bottom: 2.5rem;
   flex-wrap: wrap;
-  gap: 1rem;
+  gap: 0.5rem;
 }
 
 .tab-btn {
-  padding: 1rem 1.5rem;
+  padding: 1rem 2rem;
   border: none;
-  background: none;
+  background: transparent;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s;
-  border-radius: 8px 8px 0 0;
+  transition: all 0.3s ease;
+  position: relative;
+  color: #6c757d;
 }
 
 .tab-btn.active {
+  color: #007bff;
+}
+
+.tab-btn.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 100%;
+  height: 2px;
   background: #007bff;
-  color: white;
+}
+
+.tab-btn:hover {
+  color: #0056b3;
 }
 
 .tab-pane {
-  animation: fadeIn 0.4s ease-in;
+  animation: fadeIn 0.5s ease-out;
 }
 
 .profile-form .form-row {
   display: flex;
   gap: 1.5rem;
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
 }
 
 .form-group {
   flex: 1;
+  min-width: 200px;
 }
 
 .form-group label {
@@ -58,241 +84,224 @@
 .form-group textarea {
   width: 100%;
   padding: 0.85rem;
-  border: 1px solid #ddd;
-  border-radius: 8px;
+  border: 1px solid #ced4da;
+  border-radius: 6px;
   font-size: 1rem;
-  transition: border 0.3s;
+  transition: all 0.3s ease;
+  background: white;
 }
 
 .form-group input:focus,
 .form-group textarea:focus {
   outline: none;
   border-color: #007bff;
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
 }
 
 .btn-primary {
   background: #007bff;
   color: white;
-  padding: 0.9rem 2rem;
+  padding: 1rem 2.5rem;
   border: none;
-  border-radius: 8px;
+  border-radius: 6px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.3s ease;
+  display: block;
+  margin: 1rem auto 0;
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: #0056b3;
-  transform: translateY(-2px);
+  background: #0069d9;
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.2);
 }
 
 .btn-primary:disabled {
-  background: #ccc;
+  background: #6c757d;
   cursor: not-allowed;
 }
 
 .success-msg {
   color: #28a745;
   font-weight: 600;
-  margin-top: 1rem;
-  animation: pulse 0.5s;
+  margin-top: 1.5rem;
+  text-align: center;
+  animation: pulse 0.6s ease-in-out;
 }
 
 .order-card,
 .address-card,
 .favorite-item {
+  color: #212529;
   background: white;
-  border: 1px solid #eee;
-  border-radius: 12px;
+  border: 1px solid #e9ecef;
+  border-radius: 10px;
   padding: 1.5rem;
-  margin-bottom: 1rem;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-  transition: transform 0.2s;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
 }
 
 .order-card:hover,
-.favorite-item:hover {
-  transform: translateY(-4px);
+.favorite-item:hover,
+.address-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+.order-header,
+.address-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
 }
 
 .status {
-  padding: 0.4rem 1rem;
-  border-radius: 50px;
+  padding: 0.5rem 1.2rem;
+  border-radius: 20px;
   font-size: 0.85rem;
   font-weight: 600;
+  text-transform: uppercase;
 }
 
-.status.En-cours { background: #fff3cd; color: #856404; }
-.status.Livrée { background: #d4edda; color: #155724; }
-.status.Annulée { background: #f8d7da; color: #721c24; }
+.status.en-cours { background: #fff3cd; color: #856404; } // Minuscules pour cohérence avec ngClass
+.status.livree { background: #d4edda; color: #155724; }
+.status.annulee { background: #f8d7da; color: #721c24; }
+
+.order-date {
+  color: #6c757d;
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+.order-total {
+  text-align: right;
+  font-size: 1.1rem;
+}
 
 .favorites-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 2rem;
 }
 
 .favorite-item img {
   width: 100%;
-  height: 180px;
+  height: 200px;
   object-fit: cover;
-  border-radius: 8px;
+  border-radius: 10px 10px 0 0;
 }
 
-.btn-remove {
+.favorite-info {
+  padding: 1rem;
+  text-align: center;
+}
+
+.price {
+  font-weight: 700;
+  color: #e44d25;
+  font-size: 1.2rem;
+  margin: 0.5rem 0;
+}
+
+.btn-remove,
+.btn-add {
   background: #dc3545;
   color: white;
   border: none;
-  padding: 0.6rem 1rem;
+  padding: 0.75rem 1.5rem;
   border-radius: 6px;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   cursor: pointer;
+  transition: all 0.3s ease;
+  width: 100%;
 }
 
 .btn-add {
   background: #28a745;
-  color: white;
-  padding: 0.9rem 1.5rem;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 600;
 }
 
-.empty-state {
-  text-align: center;
-  padding: 3rem;
-  color: #888;
-  font-style: italic;
-  font-size: 1.1rem;
-}
-// Ajoute ça dans ton SCSS
-.count {
-  background: #007bff;
-  color: white;
-  border-radius: 50%;
-  width: 20px;
-  height: 20px;
-  font-size: 0.7rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  margin-left: 5px;
+.btn-remove:hover,
+.btn-add:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
 }
 
-.price {
-  font-weight: 600;
-  color: #e91e63;
-  font-size: 1.1rem;
-}
 .addresses-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: 2rem;
   flex-wrap: wrap;
   gap: 1rem;
 }
 
 .addresses-header h3 {
   margin: 0;
-  color: #333;
-  font-size: 1.4rem;
-}
-
-.address-card {
-  background: white;
-  border: 2px solid #eee;
-  border-radius: 12px;
-  padding: 1.5rem;
-  margin-bottom: 1rem;
-  position: relative;
-  transition: all 0.3s;
+  color: #212529;
+  font-size: 1.5rem;
 }
 
 .address-card.main-address {
   border-color: #007bff;
-  background: #f8fbff;
-}
-
-.address-card.main-address::before {
-  content: "★";
-  position: absolute;
-  top: -10px;
-  right: -10px;
-  background: #007bff;
-  color: white;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.2rem;
-  box-shadow: 0 4px 10px rgba(0,123,255,0.3);
+  background: #f0f6ff;
 }
 
 .main-badge {
   background: #007bff;
   color: white;
-  padding: 0.25rem 0.75rem;
+  padding: 0.3rem 1rem;
   border-radius: 20px;
   font-size: 0.8rem;
   font-weight: 600;
 }
 
-.address-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.5rem;
-}
-
 .address-text {
-  color: #555;
-  margin: 0.5rem 0;
-  line-height: 1.5;
+  color: #495057;
+  margin: 0.75rem 0;
+  line-height: 1.6;
+  font-size: 1rem;
 }
 
-.btn-remove {
-  background: #dc3545;
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: #6c757d;
+  font-style: italic;
+  font-size: 1.2rem;
+  background: #f8f9fa;
+  border-radius: 10px;
+  border: 1px dashed #dee2e6;
+}
+
+.count {
+  background: #17a2b8;
   color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn-remove:hover {
-  background: #c82333;
-  transform: scale(1.05);
-}
-
-.btn-add {
-  background: #28a745;
-  color: white;
-  padding: 0.8rem 1.5rem;
-  border: none;
-  border-radius: 8px;
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  font-size: 0.8rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 0.5rem;
   font-weight: 600;
-  cursor: pointer;
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
+  from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes pulse {
   0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.05); }
+  50% { transform: scale(1.03); }
 }
 
 @media (max-width: 768px) {
   .form-row { flex-direction: column; }
-  .tabs { flex-direction: column; }
-  .tab-btn.active { border-left: 4px solid #007bff; border-bottom: none; }
+  .tabs { justify-content: flex-start; }
+  .favorites-grid { grid-template-columns: 1fr; }
 }

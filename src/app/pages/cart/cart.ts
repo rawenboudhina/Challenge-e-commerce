@@ -2,15 +2,14 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { CartService } from '../../core/services/cart.service';
-import { AuthService } from '../../core/services/auth.service';
-import { Product, CartItem } from '../../core/models/product.model';
+import { CartService } from '../../services/cart.service';
+import { AuthService } from '../../services/auth.service';
+import { Product, CartItem } from '../../models/product.model';
 import { Router, RouterModule } from '@angular/router'; 
 interface Spec {
   key: string;
   value: string;
 }
-
 @Component({
   selector: 'app-cart',
   standalone: true,
@@ -34,17 +33,12 @@ export class CartComponent implements OnInit, OnDestroy {  // ← CHANGÉ ICI
       this.cartItems = items;
       this.loading = false;
     });
-/* 
-    if (this.authService.isAuthenticated()) {
-      this.cartService.mergeLocalCartOnLogin();
-    } */
   }
 
   ngOnDestroy() {
     this.sub?.unsubscribe();
   }
 
-  // ... reste identique
   getSubtotal(item: CartItem): number {
     return item.product.price * item.quantity;
   }

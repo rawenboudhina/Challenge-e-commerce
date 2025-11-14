@@ -23,17 +23,6 @@
           @if (product?.discountPercentage) {
             <div class="promo-badge">-{{ product?.discountPercentage }}%</div>
           }
-
-          <!-- Wishlist flottant -->
-       <!-- WISHLIST DANS ACTIONS → UNIQUEMENT SI CONNECTÉ -->
-@if (authService.isAuthenticated()) {
-  <button class="btn-wishlist"
-          (click)="toggleWishlist()"
-          [class.active]="isInWishlist">
-    <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-    <span>{{ isInWishlist ? 'Retirer' : 'Favoris' }}</span>
-  </button>
-}
         </div>
 
         <!-- Thumbnails -->
@@ -104,20 +93,21 @@
               <input type="number" [(ngModel)]="quantity" (change)="validateQuantity()" [max]="getProductStock()">
               <button (click)="increaseQuantity()" [disabled]="quantity >= getProductStock()" aria-label="Augmenter">+</button>
             </div>
+            @if (authService.isAuthenticated()) {
+           <button class="wishlist-btn"
+            [class.active]="isInWishlist"
+          (click)="toggleWishlist()"
+          [attr.aria-label]="isInWishlist ? 'Retirer des favoris' : 'Ajouter aux favoris'">
+        <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        </button>
+}
 
             <button class="btn-add" (click)="addToCart()" [disabled]="quantity < 1">
               Ajouter au panier
             </button>
 
            <!-- WISHLIST FLOTTANT → UNIQUEMENT SI CONNECTÉ -->
-@if (authService.isAuthenticated()) {
-  <button class="wishlist-btn"
-          [class.active]="isInWishlist"
-          (click)="toggleWishlist()"
-          [attr.aria-label]="isInWishlist ? 'Retirer des favoris' : 'Ajouter aux favoris'">
-    <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-  </button>
-}
+
           } @else {
             <div class="out-of-stock">
               Produit indisponible

@@ -12,10 +12,10 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
-import { Product } from '../../../core/models/product.model';
-import { WishlistService } from '../../../core/services/wishlist.service';
-import { CartService } from '../../../core/services/cart.service';
-import { AuthService } from '../../../core/services/auth.service';  
+import { Product } from '../../../models/product.model';
+import { WishlistService } from '../../../services/wishlist.service';
+import { CartService } from '../../../services/cart.service';
+// import { AuthService } from '../../../services/auth.service';  
 @Component({
   selector: 'app-product-card',
   standalone: true,

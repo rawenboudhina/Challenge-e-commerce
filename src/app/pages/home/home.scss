@@ -1,8 +1,7 @@
 @use '../../shared/variables' as *;
 
-// —————————————— BASE ——————————————
 .home-page {
-  padding-top: 0 !important; // Hauteur du header mobile
+  padding-top: 0 !important; 
 }
 .hero-carousel {
   min-height: 450px;

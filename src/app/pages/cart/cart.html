@@ -6,7 +6,6 @@
       <p *ngIf="cartItems.length === 0">Votre panier est vide.</p>
       <p *ngIf="cartItems.length > 0">Vous avez {{ cartItems.length }} article(s) dans votre panier.</p>
     </div>
-
     <!-- Liste des articles -->
     <div class="cart-items" *ngIf="cartItems.length > 0">
       @for (item of cartItems; track item.product.id) {

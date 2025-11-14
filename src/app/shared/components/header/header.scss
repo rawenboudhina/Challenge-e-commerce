@@ -1,8 +1,4 @@
 @use '../../variables' as *;
-
-// ============================================
-// HEADER - DESIGN PREMIUM & COHÉRENT
-// ============================================
 .header {
   position: fixed;
   top: 0;
@@ -50,7 +46,6 @@
     }
   }
 }
-// —————————————— SEARCH BARS (DESKTOP & MOBILE) ——————————————
 .search-bar, .mobile-search {
   display: flex;
   border-radius: 3rem;
@@ -92,11 +87,10 @@
   max-width: 500px;
 }
 .mobile-search {
-  display: none; // Caché par défaut
+  display: none; 
   width: 100%;
   background: rgba(30, 41, 59, 0.6);
 }
-// —————————————— NAV LINKS & MENU ——————————————
 .nav-links {
   display: flex;
   align-items: center;
@@ -145,6 +139,14 @@
       animation: pulse 2s infinite;
     }
   }
+  .favorites-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem; 
+  font-weight: 600;
+  text-decoration: none;
+}
+
   .user-container {
     position: relative;
   }
@@ -235,7 +237,6 @@
     letter-spacing: 0.5px;
   }
 }
-// —————————————— CATEGORIES BAR (DESKTOP) ——————————————
 .categories-bar {
   background: rgba(15, 23, 42, 0.8);
   backdrop-filter: blur(10px);
@@ -272,7 +273,6 @@
     }
   }
 }
-// —————————————— RESPONSIVE ——————————————
 @media (max-width: 768px) {
   .navbar {
     padding: 0.5rem 0;
@@ -383,7 +383,6 @@
     display: none !important;
   }
 }
-// —————————————— MINI-CART DROPDOWN ——————————————
 .mini-cart-dropdown {
   position: absolute;
   top: 100%;

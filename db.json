@@ -4,9 +4,9 @@
       "id": "1762353008395",
       "email": "Rourou@gmail.com",
       "username": "Rourou",
-      "firstName": "Rourou",
-      "lastName": "Rourou",
-      "address": "Rourou1",
+      "firstName": "Rourou1234",
+      "lastName": "Rourou32",
+      "address": "Rourou123",
       "password": "Rourou"
     },
     {
@@ -32,14 +32,9 @@
       "id": "1",
       "userId": "1762353008395",
       "products": [
-        47,
-        9,
-        78,
-        43,
-        85,
-        45,
-        7,
-        79
+        83,
+        81,
+        78
       ]
     },
     {
@@ -83,12 +78,40 @@
     {
       "id": "8b37",
       "userId": "1762353008395",
+      "items": []
+    }
+  ],
+  "orders": [
+    {
+      "id": "d49f",
+      "userId": "1762353008395",
       "items": [
         {
-          "productId": 181,
-          "quantity": 2
+          "productId": 84,
+          "quantity": 1
+        },
+        {
+          "productId": 85,
+          "quantity": 1
         }
-      ]
+      ],
+      "shippingAddress": {
+        "fullName": "Rourou Rourou",
+        "street": "Rourou1"
+      },
+      "deliveryMethod": "standard",
+      "paymentInfo": {
+        "cardNumber": "1231231231231211",
+        "expiryMonth": 11,
+        "expiryYear": 2026,
+        "cvv": "123",
+        "nameOnCard": "AAAA"
+      },
+      "subtotal": 59.980000000000004,
+      "shippingFee": 5,
+      "total": 64.98,
+      "status": "pending",
+      "createdAt": "2025-11-14T12:34:39.611Z"
     }
   ]
 }

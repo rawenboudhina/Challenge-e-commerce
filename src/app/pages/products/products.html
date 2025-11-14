@@ -7,57 +7,77 @@
     </div>
 
     <!-- Filtres et Tri -->
-    <div class="filters-section">
-      <form class="filters-form" (ngSubmit)="applyFilters()">
-        <!-- Filtre par catégorie -->
-        <div class="filter-group">
-          <label for="category">Catégorie :</label>
-          <select id="category" [(ngModel)]="filters.category" name="category">
-            <option value="">Toutes les catégories</option>
-            @for (cat of categories; track cat) {
-              <option [value]="cat">{{ formatCategory(cat) }}</option>
-            }
-          </select>
-        </div>
+   <div class="filters-section">
+  <form class="filters-form">
 
-        <!-- Filtre par prix -->
-        <div class="filter-group price-range">
-          <label>Prix TND :</label>
-          <div class="price-inputs">
-            <input type="number" [(ngModel)]="filters.minPrice" name="minPrice" placeholder="Min" min="0">
-            <span>-</span>
-            <input type="number" [(ngModel)]="filters.maxPrice" name="maxPrice" placeholder="Max" min="0">
-          </div>
-        </div>
-
-        <!-- Filtre par note -->
-        <div class="filter-group">
-          <label for="minRating">Note minimale :</label>
-          <select id="minRating" [(ngModel)]="filters.minRating" name="minRating">
-            <option value="0">Toutes les notes</option>
-            <option value="1">1★ et plus</option>
-            <option value="2">2★ et plus</option>
-            <option value="3">3★ et plus</option>
-            <option value="4">4★ et plus</option>
-            <option value="5">5★</option>
-          </select>
-        </div>
-
-        <!-- Tri -->
-        <div class="filter-group">
-          <label for="sort">Trier par :</label>
-          <select id="sort" [(ngModel)]="filters.sort" name="sort">
-            <option value="newest">Nouveautés</option>
-            <option value="price-asc">Prix croissant</option>
-            <option value="price-desc">Prix décroissant</option>
-            <option value="popularity">Popularité</option>
-          </select>
-        </div>
-
-        <button type="submit" class="btn-apply">Appliquer</button>
-        <button type="button" (click)="resetFilters()" class="btn-reset">Réinitialiser</button>
-      </form>
+    <!-- Catégorie -->
+    <div class="filter-group">
+      <label for="category">Catégorie :</label>
+      <select id="category"
+              [(ngModel)]="filters.category"
+              name="category"
+              (change)="applyFilters()">
+        <option value="">Toutes les catégories</option>
+        @for (cat of categories; track cat) {
+          <option [value]="cat">{{ formatCategory(cat) }}</option>
+        }
+      </select>
     </div>
+
+    <!-- Prix -->
+    <div class="filter-group price-range">
+      <label>Prix TND :</label>
+      <div class="price-inputs">
+        <input type="number"
+               [(ngModel)]="filters.minPrice"
+               name="minPrice"
+               placeholder="Min"
+               min="0"
+               (input)="applyFilters()">
+        <span>-</span>
+        <input type="number"
+               [(ngModel)]="filters.maxPrice"
+               name="maxPrice"
+               placeholder="Max"
+               min="0"
+               (input)="applyFilters()">
+      </div>
+    </div>
+
+    <!-- Note -->
+    <div class="filter-group">
+      <label for="minRating">Note minimale :</label>
+      <select id="minRating"
+              [(ngModel)]="filters.minRating"
+              name="minRating"
+              (change)="applyFilters()">
+        <option value="0">Toutes les notes</option>
+        <option value="1">1★ et plus</option>
+        <option value="2">2★ et plus</option>
+        <option value="3">3★ et plus</option>
+        <option value="4">4★ et plus</option>
+        <option value="5">5★</option>
+      </select>
+    </div>
+
+    <!-- Tri -->
+    <div class="filter-group">
+      <label for="sort">Trier par :</label>
+      <select id="sort"
+              [(ngModel)]="filters.sort"
+              name="sort"
+              (change)="applyFilters()">
+        <option value="newest">Nouveautés</option>
+        <option value="price-asc">Prix croissant</option>
+        <option value="price-desc">Prix décroissant</option>
+        <option value="popularity">Popularité</option>
+      </select>
+    </div>
+
+    <button type="button" (click)="resetFilters()" class="btn-reset">Réinitialiser</button>
+  </form>
+</div>
+
 
     <!-- Grille des produits -->
     <div class="products-grid" *ngIf="paginatedProducts.length > 0">

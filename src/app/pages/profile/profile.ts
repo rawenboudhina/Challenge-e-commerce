@@ -1,14 +1,13 @@
-// src/app/features/profile/profile.component.ts
 import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { RouterModule } from '@angular/router';
-import { AuthService } from '../../core/services/auth.service';
-import { WishlistService } from '../../core/services/wishlist.service';
+import { RouterModule, ActivatedRoute } from '@angular/router'; // Ajoutez ActivatedRoute
+import { AuthService } from '../../services/auth.service';
+import { WishlistService } from '../../services/wishlist.service';
 import { HttpClient } from '@angular/common/http';
-import { ProductService } from '../../core/services/product.service';
+import { ProductService } from '../../services/product.service';
 import { Subject, takeUntil, forkJoin } from 'rxjs';
-import { Product } from '../../core/models/product.model';
+import { Product } from '../../models/product.model';
 
 interface Order {
   id: string;
@@ -32,6 +31,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
   private productService = inject(ProductService);
   private http = inject(HttpClient);
   private fb = inject(FormBuilder);
+  private route = inject(ActivatedRoute); // Ajoutez cette ligne
 
   private apiUrl = 'http://localhost:3000';
 
@@ -42,8 +42,8 @@ export class ProfileComponent implements OnInit, OnDestroy {
   user: any = null;
   orders: Order[] = [];
   favorites: Product[] = [];
-  addresses: string[] = []; // Toutes les adresses
-  mainAddress: string = ''; // Adresse principale (celle du profil)
+  addresses: string[] = [];
+  mainAddress: string = '';
 
   tabs = [
     { id: 'profile', label: 'Profil' },
@@ -53,6 +53,14 @@ export class ProfileComponent implements OnInit, OnDestroy {
   ];
 
   ngOnInit(): void {
+    // Lecture simple du paramètre 'tab' de l'URL
+    this.route.queryParams.subscribe(params => {
+      const tabParam = params['tab'];
+      if (tabParam && this.tabs.some(tab => tab.id === tabParam)) {
+        this.activeTab = tabParam;
+      }
+    });
+
     this.authService.currentUser$
       .pipe(takeUntil(this.destroy$))
       .subscribe(user => {
@@ -70,6 +78,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
     }
   }
 
+  // TOUT LE RESTE DE VOTRE CODE RESTE IDENTIQUE
   private initForm(): void {
     this.profileForm = this.fb.group({
       firstName: [this.user?.firstName || '', Validators.required],
@@ -88,7 +97,9 @@ export class ProfileComponent implements OnInit, OnDestroy {
   private loadOrders(): void {
     if (!this.user?.id) return;
     this.http.get<Order[]>(`${this.apiUrl}/orders?userId=${this.user.id}`)
-      .subscribe(orders => this.orders = orders);
+      .subscribe(orders => 
+        this.orders = orders
+      );
   }
 
   private loadFavorites(): void {
@@ -108,16 +119,11 @@ export class ProfileComponent implements OnInit, OnDestroy {
     if (this.user) this.wishlistService.loadWishlist();
   }
 
-  // CHARGER LES ADRESSES (principale + supplémentaires)
   private loadAddresses(): void {
     this.mainAddress = this.user?.address || 'Aucune adresse principale';
-
-    // Si tu as un champ addresses[] dans l'utilisateur → utilise-le
-    // Sinon, on simule avec localStorage ou API
     const saved = localStorage.getItem(`addresses_${this.user?.id}`);
     this.addresses = saved ? JSON.parse(saved) : [this.mainAddress];
     
-    // Toujours garder l'adresse principale en premier
     if (!this.addresses.includes(this.mainAddress)) {
       this.addresses.unshift(this.mainAddress);
     }
@@ -127,7 +133,6 @@ export class ProfileComponent implements OnInit, OnDestroy {
     this.activeTab = tab;
   }
 
-  // MISE À JOUR PROFIL + ADRESSE PRINCIPALE
   updateProfile(): void {
     if (this.profileForm.valid && this.user?.id) {
       const updatedData = this.profileForm.value;
@@ -139,7 +144,6 @@ export class ProfileComponent implements OnInit, OnDestroy {
           this.user = payload;
           this.mainAddress = updatedData.address;
 
-          // Mettre à jour les adresses
           if (!this.addresses.includes(this.mainAddress)) {
             this.addresses.unshift(this.mainAddress);
           }
@@ -151,7 +155,6 @@ export class ProfileComponent implements OnInit, OnDestroy {
     }
   }
 
-  // AJOUTER UNE NOUVELLE ADRESSE
   addAddress(): void {
     const newAddr = prompt('Nouvelle adresse de livraison :');
     if (newAddr?.trim()) {
@@ -166,10 +169,9 @@ export class ProfileComponent implements OnInit, OnDestroy {
     }
   }
 
-  // SUPPRIMER UNE ADRESSE (sauf principale)
   removeAddress(index: number): void {
     if (index === 0) {
-      alert('Vous ne pouvez pas supprimer l’adresse principale ! Modifiez-la dans Profil.');
+      alert('Vous ne pouvez pas supprimer l\'adresse principale ! Modifiez-la dans Profil.');
       return;
     }
     this.addresses.splice(index, 1);
@@ -177,20 +179,17 @@ export class ProfileComponent implements OnInit, OnDestroy {
     this.showToast('Adresse supprimée', 'success');
   }
 
-  // SAUVEGARDER DANS LOCALSTORAGE
   private saveAddressesToStorage(): void {
     if (this.user?.id) {
       localStorage.setItem(`addresses_${this.user.id}`, JSON.stringify(this.addresses));
     }
   }
 
-  // RETIRER FAVORI
   removeFavorite(productId: number): void {
     const product = this.favorites.find(p => p.id === productId);
     if (product) this.wishlistService.toggle(product);
   }
 
-  // TOAST PRO
   private showToast(message: string, type: 'success' | 'error' = 'success'): void {
     const toast = document.createElement('div');
     toast.textContent = message;

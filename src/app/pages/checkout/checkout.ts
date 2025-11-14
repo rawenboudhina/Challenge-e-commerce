@@ -3,11 +3,11 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, AbstractControl, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { CartService } from '../../core/services/cart.service';
-import { AuthService } from '../../core/services/auth.service';
+import { CartService } from '../../services/cart.service';
+import { AuthService } from '../../services/auth.service';
 import { HttpClient } from '@angular/common/http';
-import { Product, CartItem } from '../../core/models/product.model';
-import { User } from '../../core/models/user.model'; // Import User
+import { Product, CartItem } from '../../models/product.model';
+import { User } from '../../models/user.model'; // Import User
 
 interface DeliveryMethod {
   id: string;
