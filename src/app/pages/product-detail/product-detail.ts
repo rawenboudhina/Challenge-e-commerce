@@ -1,3 +1,4 @@
+// src/app/pages/product-detail/product-detail.component.ts  // Assurez-vous du chemin correct
 import { Component, OnInit, OnDestroy, inject, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ProductService } from '../../services/product.service';
@@ -10,6 +11,7 @@ import { ProductCardComponent } from '../../shared/components/product-card/produ
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { Product } from '../../models/product.model';
 import { RouterModule } from '@angular/router';
+import Swal from 'sweetalert2';  // Import pour SweetAlert
 
 interface Review {
   user: string;
@@ -37,13 +39,13 @@ interface Spec {
 })
 export class ProductDetailComponent implements OnInit, OnDestroy {
   // === SERVICES ===
-   public authService = inject(AuthService);
-   public route = inject(ActivatedRoute);
-   productService = inject(ProductService);
-   cartService = inject(CartService);
-   wishlistService = inject(WishlistService);
-   sanitizer = inject(DomSanitizer);
- public router = inject(Router);
+  public authService = inject(AuthService);
+  public route = inject(ActivatedRoute);
+  productService = inject(ProductService);
+  cartService = inject(CartService);
+  wishlistService = inject(WishlistService);
+  sanitizer = inject(DomSanitizer);
+  public router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
 
   // === ÉTAT ===
@@ -54,37 +56,38 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
   loading = true;
   showReviewForm = false;
   newReview: Partial<Review> = { rating: 0, comment: '' };
-   allReviews: Review[] = [];
-   loadedReviewsCount = 0;
-   reviewsPerPage = 5;
+  allReviews: Review[] = [];
+  loadedReviewsCount = 0;
+  reviewsPerPage = 5;
 
   // Wishlist
   isInWishlist = false;
   private wishlistSubscription: any;
   hoverRating = 0;
+
   // === LIFECYCLE ===
- ngOnInit(): void {
-  // LE FIX ULTIME 2025 : SUBSCRIBE AUX PARAMÈTRES (JAMAIS snapshot avec OnPush)
-  this.route.paramMap.subscribe(params => {
-    const id = params.get('id');
-    if (id) {
-      this.loadProduct(+id);
-    } else {
-      this.router.navigate(['/404']);
-    }
-  });
+  ngOnInit(): void {
+    // LE FIX ULTIME 2025 : SUBSCRIBE AUX PARAMÈTRES (JAMAIS snapshot avec OnPush)
+    this.route.paramMap.subscribe(params => {
+      const id = params.get('id');
+      if (id) {
+        this.loadProduct(+id);
+      } else {
+        this.router.navigate(['/404']);
+      }
+    });
 
-  // Wishlist (inchangé)
-  this.wishlistSubscription = this.wishlistService.wishlist$.subscribe(ids => {
-    if (this.product) {
-      this.isInWishlist = ids.includes(this.product.id);
-      this.cdr.markForCheck();
-    }
-  });
+    // Wishlist (inchangé)
+    this.wishlistSubscription = this.wishlistService.wishlist$.subscribe(ids => {
+      if (this.product) {
+        this.isInWishlist = ids.includes(this.product.id);
+        this.cdr.markForCheck();
+      }
+    });
 
-  // Supprime le setTimeout inutile
-  // setTimeout(() => this.updateWishlistStatus(), 0); ← SUPPRIME ÇA
-}
+    // Supprime le setTimeout inutile
+    // setTimeout(() => this.updateWishlistStatus(), 0); ← SUPPRIME ÇA
+  }
 
   ngOnDestroy(): void {
     this.wishlistSubscription?.unsubscribe();
@@ -104,86 +107,99 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
       this.router.navigate(['/login'], { queryParams: { returnUrl: this.router.url } });
       return;
     }
+    const wasInWishlist = this.isInWishlist;  // Capture l'état avant toggle pour le message
     this.wishlistService.toggle(this.product);
+
+    // Affiche une alerte attractive avec SweetAlert basée sur l'action
+    const action = wasInWishlist ? 'retiré des' : 'ajouté aux';
+    Swal.fire({
+      title: `${this.product.title} ${action} favoris !`,
+      icon: 'success',
+      timer: 2000,  // Ferme automatiquement après 2 secondes
+      showConfirmButton: false,
+      position: 'top-end',  // Position en haut à droite pour une notification discrète
+      toast: true  // Mode toast pour une notification non bloquante
+    });
   }
-  
+
   private triggerConfetti(): void {
-  for (let i = 0; i < 25; i++) {
-    const confetti = document.createElement('div');
-    confetti.className = 'confetti';
-    confetti.style.left = Math.random() * 100 + 'vw';
-    confetti.style.background = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444'][Math.floor(Math.random() * 4)];
-    confetti.style.animationDelay = Math.random() * 0.5 + 's';
-    document.body.appendChild(confetti);
-    setTimeout(() => confetti.remove(), 2000);
+    for (let i = 0; i < 25; i++) {
+      const confetti = document.createElement('div');
+      confetti.className = 'confetti';
+      confetti.style.left = Math.random() * 100 + 'vw';
+      confetti.style.background = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444'][Math.floor(Math.random() * 4)];
+      confetti.style.animationDelay = Math.random() * 0.5 + 's';
+      document.body.appendChild(confetti);
+      setTimeout(() => confetti.remove(), 2000);
+    }
   }
-}
 
-private playAddToCartSound(): void {
-  const audio = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-coin-win-1939.mp3');
-  audio.volume = 0.5;
-  audio.play().catch(() => {});
-}
-
-private vibratePhone(): void {
-  if (navigator.vibrate) {
-    navigator.vibrate([200, 100, 200]);
+  private playAddToCartSound(): void {
+    const audio = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-coin-win-1939.mp3');
+    audio.volume = 0.5;
+    audio.play().catch(() => {});
   }
-}
+
+  private vibratePhone(): void {
+    if (navigator.vibrate) {
+      navigator.vibrate([200, 100, 200]);
+    }
+  }
 
   // === CHARGEMENT PRODUIT ===
- private loadProduct(id: number): void {
-  this.loading = true;
-  this.product = null; // Reset pour forcer OnPush
-  this.cdr.detectChanges(); // Forcer affichage du skeleton
+  private loadProduct(id: number): void {
+    this.loading = true;
+    this.product = null; // Reset pour forcer OnPush
+    this.cdr.detectChanges(); // Forcer affichage du skeleton
 
-  this.productService.getProductById(id).subscribe({
-    next: (product: Product) => {
-      const enhancedProduct = {
-        ...product,
-        specs: (product as any).specs || [],
-      };
-      this.product = enhancedProduct;
-      this.selectedImage = 0;
-
-      // Images fallback
-      let images = product.images || [product.image || '/assets/fallback.jpg'];
-      if (images.length < 3) {
-        const main = images[0];
-        images = [...images, main, main].slice(0, 3);
-      }
-      (this.product as any).images = images;
-
-      // Reviews
-      this.allReviews = [...(product.reviews || [])];
-      this.loadedReviewsCount = Math.min(this.reviewsPerPage, this.allReviews.length);
-      (this.product as any).reviews = this.allReviews.slice(0, this.loadedReviewsCount);
-
-      // Rating global
-      if (!this.product.rating?.rate || this.product.rating.count === 0) {
-        const avg = this.allReviews.length > 0
-          ? this.allReviews.reduce((s, r) => s + r.rating, 0) / this.allReviews.length
-          : 4.5;
-        this.product.rating = {
-          rate: Math.round(avg * 10) / 10,
-          count: this.allReviews.length
+    this.productService.getProductById(id).subscribe({
+      next: (product: Product) => {
+        const enhancedProduct = {
+          ...product,
+          specs: (product as any).specs || [],
         };
+        this.product = enhancedProduct;
+        this.selectedImage = 0;
+
+        // Images fallback
+        let images = product.images || [product.image || '/assets/fallback.jpg'];
+        if (images.length < 3) {
+          const main = images[0];
+          images = [...images, main, main].slice(0, 3);
+        }
+        (this.product as any).images = images;
+
+        // Reviews
+        this.allReviews = [...(product.reviews || [])];
+        this.loadedReviewsCount = Math.min(this.reviewsPerPage, this.allReviews.length);
+        (this.product as any).reviews = this.allReviews.slice(0, this.loadedReviewsCount);
+
+        // Rating global
+        if (!this.product.rating?.rate || this.product.rating.count === 0) {
+          const avg = this.allReviews.length > 0
+            ? this.allReviews.reduce((s, r) => s + r.rating, 0) / this.allReviews.length
+            : 4.5;
+          this.product.rating = {
+            rate: Math.round(avg * 10) / 10,
+            count: this.allReviews.length
+          };
+        }
+
+        this.loadSimilarProducts();
+        this.loading = false;
+
+        // LE SECRET TUNISIEN 2025 :
+        this.cdr.detectChanges(); // PAS markForCheck() → detectChanges() !!!
+        this.updateWishlistStatus();
+      },
+      error: (error) => {
+        console.error('Erreur chargement produit :', error);
+        this.loading = false;
+        this.cdr.detectChanges(); // Même en erreur
       }
+    });
+  }
 
-      this.loadSimilarProducts();
-      this.loading = false;
-
-      // LE SECRET TUNISIEN 2025 :
-      this.cdr.detectChanges(); // PAS markForCheck() → detectChanges() !!!
-      this.updateWishlistStatus();
-    },
-    error: (error) => {
-      console.error('Erreur chargement produit :', error);
-      this.loading = false;
-      this.cdr.detectChanges(); // Même en erreur
-    }
-  });
-}
   // === QUANTITÉ ===
   decreaseQuantity(): void {
     this.quantity = Math.max(1, this.quantity - 1);
@@ -318,22 +334,20 @@ private vibratePhone(): void {
   openReviewModal(): void {
     if (!this.authService.isAuthenticated()) {
       if (confirm('Vous devez être connecté pour écrire un avis.\nVoulez-vous vous connecter maintenant ?')) {
-        this.router.navigate(['/login'], { 
-          queryParams: { returnUrl: this.router.url + '#reviews' } 
+        this.router.navigate(['/login'], {
+          queryParams: { returnUrl: this.router.url + '#reviews' }
         });
       }
       return;
     }
-
     this.showReviewForm = true;
     this.newReview = {
       user: this.authService.getCurrentUser()?.firstName || 'Client',
       rating: 5,
       comment: '',
-      title: '',                                 // ← ajouté
+      title: '',                 
       date: new Date().toISOString().slice(0, 10)
     };
-
     setTimeout(() => {
       document.querySelector('.review-form')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }, 100);
@@ -345,44 +359,42 @@ private vibratePhone(): void {
 
   cancelReview(): void {
     this.showReviewForm = false;
-    this.newReview = { rating: 0, comment: '' };
+    this.newReview = { rating: 0, comment: '', title: '' };
   }
 
- submitReview(): void {
-  const comment = this.newReview.comment?.trim();
-  const title = this.newReview.title?.trim();
-  const rating = this.newReview.rating;
+  submitReview(): void {
+    const comment = this.newReview.comment?.trim();
+    const title = this.newReview.title?.trim();
+    const rating = this.newReview.rating;
+    if (!title || !comment || !rating || rating === 0) {
+      alert('Veuillez remplir le titre, le commentaire et la note');
+      return;
+    }
+    const fullReview: Review = {
+      user: this.authService.getCurrentUser()?.firstName || 'Client',
+      rating,
+      comment,
+      title,                                      // ← titre ajouté
+      date: new Date().toLocaleDateString('fr-FR'),
+      helpful: 0,
+      helpfulClicked: false,
+      justAdded: true                             // ← animation
+    };
+    this.allReviews.unshift(fullReview);
+    this.updateReviewsDisplay();
+    this.updateOverallRating();
+    this.showReviewForm = false;
+    this.newReview = { rating: 0, comment: '', title: '' };
 
-  if (!title || !comment || !rating || rating === 0) {
-    alert('Veuillez remplir le titre, le commentaire et la note');
-    return;
+    // Animation disparaît après 3s
+    setTimeout(() => {
+      fullReview.justAdded = false;
+      this.cdr.markForCheck();
+    }, 3000);
+
+    this.showToast('Merci pour votre avis ! Il apparaît en premier', 'success');
   }
 
-  const fullReview: Review = {
-    user: this.authService.getCurrentUser()?.firstName || 'Client',
-    rating,
-    comment,
-    title,                                      // ← titre ajouté
-    date: new Date().toLocaleDateString('fr-FR'),
-    helpful: 0,
-    helpfulClicked: false,
-    justAdded: true                             // ← animation
-  };
-
-  this.allReviews.unshift(fullReview);
-  this.updateReviewsDisplay();
-  this.updateOverallRating();
-  this.showReviewForm = false;
-  this.newReview = { rating: 0, comment: '', title: '' };
-
-  // Animation disparaît après 3s
-  setTimeout(() => {
-    fullReview.justAdded = false;
-    this.cdr.markForCheck();
-  }, 3000);
-
-  this.showToast('Merci pour votre avis ! Il apparaît en premier', 'success');
-}
   private updateReviewsDisplay(): void {
     this.loadedReviewsCount = Math.min(this.reviewsPerPage, this.allReviews.length);
     (this.product as any).reviews = this.allReviews.slice(0, this.loadedReviewsCount);
@@ -443,13 +455,13 @@ private vibratePhone(): void {
   notifyWhenAvailable(): void {
     this.showToast('Vous serez notifié dès le retour en stock !', 'success');
   }
-   // === AJOUT AU PANIER DEPUIS SIMILAIRES (VERSION PRO TUNISIE 2025) ===
+
+  // === AJOUT AU PANIER DEPUIS SIMILAIRES (VERSION PRO TUNISIE 2025) ===
   onAddToCartFromSimilar(product: Product, event?: MouseEvent): void {
     if (event) {
       event.stopPropagation();
       event.preventDefault();
     }
-
     this.cartService.addToCart(product, 1);
     this.showToast(`1 × ${product.title} ajouté au panier !`, 'success');
     

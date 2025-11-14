@@ -1,59 +1,200 @@
-# Techzone
+# 🛒 TechZone
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 20.3.5.
+## 📖 Description du projet
 
-## Development server
+**TechZone** est une application web de commerce électronique moderne développée avec **Angular** dans le cadre du *Challenge Front-End 2025*. Elle offre une **expérience d’achat fluide, rapide et responsive**, tout en appliquant les meilleures pratiques front-end : *routing modulaire*, *lazy loading*, *RxJS pour la gestion d’état*, *intercepteurs HTTP*, et *gestion centralisée des erreurs*. L’application combine intelligemment **l’API publique [DummyJSON](https://dummyjson.com/)** pour les produits et un **fichier db.json interne** pour enrichir les données simulées (stocks, caractéristiques, avis clients, etc.). Cette architecture hybride permet de démontrer la gestion complète d’un e-commerce sans backend réel.
 
-To start a local development server, run:
+### 🎯 Objectifs pédagogiques
+- Concevoir et développer une **application responsive** moderne.
+- Maîtriser le framework **Angular 20** et ses bonnes pratiques.
+- Implémenter une **navigation fluide et intuitive**.
+- Gérer efficacement **l’état de l’application**.
+- Offrir une **expérience utilisateur claire et cohérente**.
 
+### 🧩 Valeur ajoutée du projet
+TechZone illustre une **architecture front-end réaliste** combinant appels API et données locales. C’est une base solide pour tout futur projet e-commerce complet : intégration d’un backend, authentification réelle, ou gestion des paiements.
+
+## 🧰 Technologies utilisées
+
+### 🔹 Framework principal
+- **Angular 20** – Framework front-end choisi pour sa structure modulaire, sa gestion réactive via RxJS et son CLI performant.
+- **TypeScript** – Langage fortement typé pour une meilleure maintenabilité et lisibilité du code.
+
+### 🔹 Styling & Design
+- **SCSS (SASS)** – Préprocesseur CSS utilisé pour structurer et factoriser le style (mixins, variables, nesting).
+
+### 🔹 Gestion de l’état & des données
+- **RxJS / Services Angular** – Gestion réactive des flux de données et communication entre composants.
+- **DummyJSON API** – Fournit les données principales (produits, catégories, prix, images).
+- **Fichier db.json interne** – Ajout de données locales enrichies : stock, caractéristiques techniques, avis, etc.
+- **localStorage** – Persistance du panier et de la session utilisateur.
+
+### 🔹 Outils & environnement
+- **Node.js / npm** – Installation et gestion des dépendances.
+- **Angular CLI** – Outil de génération et de compilation du projet.
+- **Git / GitHub** – Gestion de version et hébergement du code source.
+- **GitHub Pages** *(déploiement optionnel)* – Pour héberger la version finale de l’application.
+
+### 🔹 Bonus techniques (optionnels)
+- **Animations Angular** – Pour les transitions entre pages et les loaders.
+- **Responsive Design** – Adaptation complète sur mobile, tablette et desktop.
+- **Validation Reactive Forms** – Pour l’inscription et la connexion avec messages d’erreur dynamiques.
+
+## ⚙️ Instructions d'installation et de lancement
+
+### 1️⃣ Cloner le projet
+Commence par cloner le dépôt GitHub sur ta machine :
+```bash
+git clone https://github.com/[ton-username]/techzone-angular.git
+cd techzone-angular
+```
+
+### 2️⃣ Installer les dépendances
+Installe toutes les dépendances nécessaires avec npm :
+```bash
+npm install
+```
+
+### 3️⃣ Lancer le serveur de développement
+Démarre le projet en mode développement :
 ```bash
 ng serve
 ```
+Une fois le serveur lancé, ouvre ton navigateur à l’adresse : `http://localhost:4200/`
+L’application se recharge automatiquement à chaque modification du code source.
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
+### 4️⃣ Générer une version de production
+Pour créer une version optimisée prête à être déployée :
 ```bash
-ng generate component component-name
+ng build --configuration production
+```
+Les fichiers générés se trouvent dans le dossier dist/.
+
+### 5️⃣ Déploiement sur GitHub Pages
+```bash
+ng add angular-cli-ghpages
+ng deploy
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+## 🗂️ Structure du projet
+Voici la structure générale du projet **TechZone** :
 
-```bash
-ng generate --help
-```
+### 🧩 Organisation modulaire
+Chaque fonctionnalité principale est développée dans un **module indépendant**, avec ses propres composants, services et styles. Cette approche favorise la **maintenabilité**, la **réutilisabilité** et la **clarté du code**.
 
-## Building
+### 🔄 Communication entre composants
+- Les **services Angular** (comme `ProductService` ou `CartService`) assurent la gestion centralisée de l’état et la communication entre les pages.
+- L’utilisation d’**RxJS** permet une synchronisation en temps réel entre les vues (par exemple, mise à jour du panier).
 
-To build the project run:
+## ✨ Fonctionnalités implémentées
+L’application **TechZone** respecte toutes les fonctionnalités **obligatoires** du challenge, ainsi que plusieurs **améliorations bonus**.
 
-```bash
-ng build
-```
+### 🏠 Page d’accueil
+- Carousel / slider présentant les **produits en promotion** ou **nouveautés**.
+- Affichage des **catégories de produits** sous forme de cartes cliquables.
+- Section de **produits vedettes** (minimum 8 produits).
+- Barre de **recherche fonctionnelle** permettant de filtrer les produits par nom.
+- Navigation principale dynamique avec redirection vers les différentes pages.
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+### 🛍️ Catalogue de produits
+- Grille de produits avec :
+  - Image, nom, prix, note (étoiles), et bouton **“Ajouter au panier”**.
+- **Filtres dynamiques** :
+  - Par catégorie
+  - Par plage de prix
+  - Par note d’évaluation
+- **Tri** :
+  - Prix croissant / décroissant
+  - Popularité / Nouveauté
+- **Pagination** automatique ou scroll infini.
+- Chargement avec indicateurs visuels (loader).
 
-## Running unit tests
+### 🧾 Page détail produit
+- **Galerie d’images** du produit (3 images minimum).
+- Informations détaillées :
+  - Nom, description complète, prix, disponibilité, caractéristiques.
+  - Avis et évaluations clients (mockés ou via DummyJSON).
+- Sélection de **quantité** avant ajout au panier.
+- Section “**Produits similaires**” générée automatiquement.
 
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
+### 🛒 Panier d’achat
+- Liste complète des articles ajoutés :
+  - Image miniature, nom, prix unitaire, quantité, sous-total.
+- **Mise à jour dynamique** des quantités et suppression d’articles.
+- **Récapitulatif du panier** :
+  - Sous-total, frais de livraison, total global.
+- **Persistance locale** grâce au `localStorage` (le panier reste sauvegardé après rechargement).
+- Bouton **“Procéder au paiement”**.
 
-```bash
-ng test
-```
+### 🔐 Authentification
+- **Page d’inscription** avec validation des champs :
+  - Nom, prénom, email, mot de passe, adresse.
+- **Page de connexion** simulant une authentification (session locale).
+- **Formulaires réactifs** (`Reactive Forms`) avec messages d’erreur personnalisés.
+- Gestion de la session utilisateur simulée (via `localStorage`).
 
-## Running end-to-end tests
+### 💳 Processus de commande (Bonus)
+- Page **checkout** avec :
+  - Récapitulatif des articles du panier.
+  - Formulaire d’adresse de livraison.
+  - Choix du mode de livraison et paiement simulé.
+- Page **confirmation de commande** avec message de succès.
 
-For end-to-end (e2e) testing, run:
+### 👤 Espace utilisateur (Bonus)
+- Page de **profil** (mockée) avec informations personnelles.
+- Historique des commandes simulé.
+- Système de **favoris** / **wishlist** (optionnel).
 
-```bash
-ng e2e
-```
+### ⚡ Autres fonctionnalités techniques
+- **Gestion des erreurs** et affichage de messages adaptés.
+- **Animations Angular** pour les transitions et effets de survol.
+- **Responsive design** complet (mobile, tablette, desktop).
+- **Accessibilité** : labels, contrastes, navigation clavier.
+- **Code propre et modulaire**, basé sur des composants réutilisables.
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+## ⚠️ Difficultés rencontrées
+Durant le développement du projet **TechZone**, plusieurs difficultés techniques ont été rencontrées et ont nécessité une réelle phase d’apprentissage et de recherche :
 
-## Additional Resources
+### 🔹 1. Intégration de l’API DummyJSON
+C’était la **première fois** que j’intégrais une API REST externe comme DummyJSON dans un projet Angular. La principale difficulté a été de :
+- comprendre la **structure des données retournées** par DummyJSON,
+- gérer les **appels HTTP asynchrones** avec `HttpClient` et `RxJS`,
+- traiter les erreurs (API non disponible, latence réseau, etc.).
+> 💡 J’ai surmonté cela en créant un **service dédié (`DummyJsonService`)** avec gestion des observables et d’un **interceptor** pour suivre les requêtes HTTP.
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+### 🔹 2. Fusion des données API + fichier db.json
+La combinaison entre les données externes (DummyJSON) et le **fichier db.json local** enrichi (stock, caractéristiques, avis, etc.) a été complexe. Il fallait maintenir la cohérence entre les deux sources sans backend réel.
+> 💡 J’ai utilisé des **mappings typés** (`Product` interface) et des **opérateurs RxJS (`map`, `mergeMap`)** pour fusionner les données proprement.
+
+### 🔹 3. Déploiement sur GitHub Pages
+Le déploiement avec `ng deploy` nécessitait de configurer correctement le **base href** et le **routing Angular** pour éviter les erreurs 404.
+> 💡 Après plusieurs tests, j’ai compris comment ajuster le `angular.json` et utiliser la commande `ng add angular-cli-ghpages`.
+
+Ces difficultés m’ont permis de renforcer ma compréhension d’**Angular**, de la **programmation réactive (RxJS)**, et de la **gestion de données API** dans un contexte réel de projet.
+
+## 🖼️ Captures d’écran
+Voici un aperçu visuel de l’application **TechZone** et de ses principales pages.
+
+### 🏠 Page d’accueil
+[Ajoute ici ta capture d'écran]
+
+### 🛍️ Catalogue de produits
+[Ajoute ici ta capture d'écran]
+
+### 🧾 Détail produit
+[Ajoute ici ta capture d'écran]
+
+### 🪄 Promotions & Offres spéciales
+[Ajoute ici ta capture d'écran]
+
+### 🛒 Panier d’achat
+[Ajoute ici ta capture d'écran]
+
+### 💳 Checkout & Confirmation
+[Ajoute ici ta capture d'écran]
+
+### 🔐 Authentification (Inscription / Connexion)
+[Ajoute ici ta capture d'écran]
+
+### 👤 Profil utilisateur
+[Ajoute ici ta capture d'écran]

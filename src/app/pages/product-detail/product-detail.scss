@@ -293,7 +293,7 @@ stroke: #64748b;
   .percentage { min-width: 40px; text-align: right; color: #94a3b8; }
 }
 
-.review-form {
+/* .review-form {
   background: #1e293b; padding: 1.5rem; border-radius: 1rem; margin-bottom: 2rem;
   form { display: flex; flex-direction: column; gap: 1rem; }
   label { font-weight: 600; }
@@ -301,6 +301,121 @@ stroke: #64748b;
   .stars-input { display: flex; gap: 0.5rem; .star-input { font-size: 1.8rem; cursor: pointer; color: #475569; &.selected { color: #fbbf24; }}}
   .btn-submit { background: #3b82f6; color: white; padding: 0.75rem; border: none; border-radius: 0.5rem; cursor: pointer; }
   .btn-cancel { background: #475569; color: white; }
+} */
+ .review-form {
+  background: #1e293b;
+  padding: 2rem;  /* Augmente le padding pour plus d'espace */
+  border-radius: 1.5rem;  /* Bordures plus arrondies pour un look moderne */
+  margin-bottom: 2.5rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);  /* Ajoute une ombre subtile pour du relief */
+  transition: all 0.3s ease;  /* Animation douce pour hover ou focus */
+
+  &:hover {
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);  /* Effet hover pour interaction */
+  }
+
+  h3 {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+    color: #3b82f6;  /* Couleur accentuée pour le titre */
+    text-align: center;  /* Centre le titre pour symétrie */
+  }
+
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;  /* Plus d'espace entre les éléments */
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  label {
+    font-weight: 600;
+    color: #cbd5e1;  /* Couleur plus claire pour lisibilité */
+    font-size: 1rem;
+  }
+
+  input,
+  textarea {
+    padding: 1rem;  /* Plus de padding pour confort */
+    border: 1px solid #475569;
+    border-radius: 0.75rem;  /* Bordures plus arrondies */
+    background: #334155;
+    color: white;
+    font-size: 1rem;
+    transition: all 0.3s ease;  /* Animation pour focus */
+
+    &:focus {
+      border-color: #3b82f6;  /* Bordure accentuée au focus */
+      box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);  /* Glow bleu au focus */
+      background: #1e293b;  /* Fond légèrement plus foncé au focus */
+    }
+  }
+
+  textarea {
+    resize: vertical;  /* Permet redimensionnement vertical seulement */
+    min-height: 120px;  /* Hauteur minimale pour plus d'espace */
+  }
+
+  .stars-input {
+    display: flex;
+    justify-content: center;  /* Centre les étoiles pour esthétique */
+    gap: 0.75rem;  /* Plus d'espace entre étoiles */
+    margin: 0.5rem 0;
+
+    .star-input {
+      font-size: 2.2rem;  /* Étoiles plus grandes pour meilleure touchabilité */
+      cursor: pointer;
+      color: #475569;
+      transition: all 0.3s ease;
+
+      &.selected {
+        color: #fbbf24;  /* Jaune vif pour sélection */
+      }
+
+      &:hover {
+        transform: scale(1.2);  /* Effet zoom au hover */
+      }
+    }
+  }
+
+  .btn-submit {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);  /* Gradient pour dynamisme */
+    color: white;
+    padding: 1rem;  /* Plus de padding */
+    border: none;
+    border-radius: 0.75rem;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+
+    &:hover {
+      transform: translateY(-3px);  /* Effet lift au hover */
+      box-shadow: 0 10px 20px rgba(59, 130, 246, 0.4);
+    }
+  }
+
+  .btn-cancel {
+    background: #475569;
+    color: white;
+    padding: 1rem;
+    border: none;
+    border-radius: 0.75rem;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+
+    &:hover {
+      background: #334155;
+      transform: translateY(-3px);
+    }
+  }
 }
 
 .review-card {
