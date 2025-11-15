@@ -64,7 +64,6 @@ export class ProductService {
   getCategoryList(): Observable<any[]> {
     return of(this.categories).pipe(delay(300));
   }
-  // === TRANSFORMATION ===
   private transformProduct(product: any): Product {
     const reviews = this.generateRealisticReviews(product.id, product.title, product.category);
     const avgRating = reviews.length > 0
@@ -90,7 +89,6 @@ export class ProductService {
   private transformProducts(products: any[]): Product[] {
     return products.map(p => this.transformProduct(p));
   }
-  // === AVIS RÉALISTES PAR CATÉGORIE ===
   private generateRealisticReviews(productId: number, title: string, category: string): Review[] {
     const templates: { [key: string]: string[] } = {
       'smartphones': ['Bonne autonomie', 'Appareil photo excellent', 'Fluide', 'Écran magnifique', 'Un peu cher', 'Chauffe en jeu', 'Interface intuitive'],

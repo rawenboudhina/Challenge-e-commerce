@@ -40,14 +40,12 @@ export class HomeComponent implements OnInit, OnDestroy {
 ngOnInit(): void {
   this.categories = this.productService.categories;
 
-  // CHARGE PROMO + FORCE AU MOINS 6 PRODUITS
   this.productService.getAllProducts(50).subscribe(products => {
     let strongPromo = products
-      .filter(p => (p.discountPercentage ?? 0) > 15) // BAISSE À 15% POUR AVOIR PLUS
+      .filter(p => (p.discountPercentage ?? 0) > 15) 
       .sort((a, b) => (b.discountPercentage ?? 0) - (a.discountPercentage ?? 0))
       .slice(0, 6);
 
-    // SI PAS ASSEZ → AJOUTE DES NOUVEAUTÉS
     if (strongPromo.length < 6) {
       const extras = products
         .filter(p => p.isNew && !strongPromo.find(s => s.id === p.id))
@@ -55,7 +53,6 @@ ngOnInit(): void {
       strongPromo = [...strongPromo, ...extras];
     }
 
-    // SI TOUJOURS PAS → IPHONE + 5 AUTRES ALÉATOIRES
     if (strongPromo.length === 0) {
       strongPromo = products.slice(0, 6);
     }
@@ -109,10 +106,7 @@ ngOnInit(): void {
       this.searchTerm = '';
     }
   }
-/* 
-  onAddToCart(product: Product): void {
-    this.cartService.addToCart(product);
-  } */
+
  onAddToCart(product: Product): void {
   this.cartService.addToCart(product);
   
@@ -135,7 +129,7 @@ trackByCategory(index: number, category: any): string {
 loadPromotedProducts(): void {
   this.productService.getAllProducts(50).subscribe(products => {
     let strongPromo = products
-      .filter(p => (p.discountPercentage ?? 0) > 20) // SEULEMENT >20%
+      .filter(p => (p.discountPercentage ?? 0) > 20) 
       .sort((a, b) => (b.discountPercentage ?? 0) - (a.discountPercentage ?? 0))
       .slice(0, 6);
 

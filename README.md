@@ -187,17 +187,19 @@ Ces difficultés m’ont permis de renforcer ma compréhension d’**Angular**, 
 Voici un aperçu visuel de l’application **TechZone** et de ses principales pages.
 
 ### 🏠 Page d’accueil
+![alt text](image.png)
 
 ### 🛍️ Catalogue de produits
 
-### 🧾 Détail produit
+![alt text](image-1.png)
 
-### 🪄 Promotions & Offres spéciales
+### 🧾 Détail produit
+![alt text](image-2.png)
 
 ### 🛒 Panier d’achat
+![alt text](image-3.png)
 
 ### 💳 Checkout & Confirmation
+![alt text](image-4.png)
 
-### 🔐 Authentification (Inscription / Connexion)
 
-### 👤 Profil utilisateur

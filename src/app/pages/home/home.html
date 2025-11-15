@@ -1,5 +1,4 @@
 <div class="home-page">
-  <!-- HERO CAROUSEL -->
   <section class="hero-carousel">
     <div class="carousel-container">
       @for (product of promotedProducts; track trackByProductId($index, product)) {
@@ -64,7 +63,6 @@
     </div>
   </section>
 
-  <!-- CATÉGORIES -->
   <div class="tech-categories-grid">
     @for (category of categories; track trackByCategory($index, category)) {
       <a [routerLink]="['/products']" [queryParams]="{ category: category.slug }" class="tech-category-card">
@@ -79,7 +77,6 @@
     }
   </div>
 
-  <!-- PRODUITS VEDETTES -->
   <section class="featured-section">
     <div class="container">
       <div class="section-header-featured">
@@ -114,7 +111,6 @@
     </div>
   </section>
 
-  <!-- Features (VERSION TUNISIE) -->
   <section class="features-section">
     <div class="container">
       <div class="features-grid">

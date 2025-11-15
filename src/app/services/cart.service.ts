@@ -7,8 +7,8 @@ import { HttpClient } from '@angular/common/http';
 import { switchMap, map } from 'rxjs/operators';
 
 interface CartResponse {
-  id: string;  // ← Changé en string
-  userId: string;  // ← Changé en string
+  id: string;  
+  userId: string;  
   items: { productId: number; quantity: number }[];
 }
 
@@ -37,7 +37,7 @@ export class CartService implements OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe(user => {
         if (user) {
-          this.loadUserCart(user.id);  // user.id devrait être string
+          this.loadUserCart(user.id);  
         } else {
           this.loadLocalCart();
         }
@@ -78,23 +78,21 @@ export class CartService implements OnDestroy {
     );
   }
 
-  private loadUserCart(userId: string | number): void {  // accept number or string (user.id may be number)
+  private loadUserCart(userId: string | number): void {  
     if (this.isLoadingCart) return;
     this.isLoadingCart = true;
     const uid = String(userId);
     this.http.get<CartResponse[]>(`${this.apiUrl}/carts?userId=${uid}`).pipe(
       switchMap(carts => {
-        // Cleanup : Supprime les carts extras si >1
         if (carts.length > 1) {
           const extras = carts.slice(1);
           const deleteRequests = extras.map(extra => this.http.delete(`${this.apiUrl}/carts/${extra.id}`));
-          forkJoin(deleteRequests).subscribe();  // Supprime async sans attendre
+          forkJoin(deleteRequests).subscribe();  
         }
         let cartToUse: CartResponse;
         if (carts.length > 0) {
           cartToUse = carts[0];
         } else {
-          // Crée un nouveau
           return this.http.post<CartResponse>(`${this.apiUrl}/carts`, { userId: uid, items: [] }).pipe(
             switchMap(newCart => this.fetchProductsForCart(newCart))
           );
@@ -104,7 +102,7 @@ export class CartService implements OnDestroy {
     ).subscribe({
       next: (items) => {
         this.cartItems = items;
-        this.mergeLocalCartOnLogin();  // ← AJOUT ICI : Merge après chargement serveur
+        this.mergeLocalCartOnLogin();  
         this.cartSubject.next([...this.cartItems]);
         this.isLoadingCart = false;
       },
@@ -114,7 +112,7 @@ export class CartService implements OnDestroy {
     });
   }
 
-  private lastAddTime = new Map<number, number>(); // par produit
+  private lastAddTime = new Map<number, number>(); 
   addToCart(product: Product, quantity: number = 1): void {
     const now = Date.now();
     const lastTime = this.lastAddTime.get(product.id) || 0;
@@ -232,7 +230,6 @@ export class CartService implements OnDestroy {
     this.destroy$.complete();
   }
 
-  // Ajoute ça dans ton CartService (n'importe où dans la classe)
   public getItemCount(): number {
     return this.cartItems.reduce((count, item) => count + item.quantity, 0);
   }

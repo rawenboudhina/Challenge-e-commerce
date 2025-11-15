@@ -18,7 +18,7 @@ export interface Product {
   isNew?: boolean;
   discount?: number;
   reviews?: Review[];
-  specs?: Spec[]; // ← CORRIGÉ ICI
+  specs?: Spec[]; 
 }
 
 export interface Review {
