@@ -3,11 +3,13 @@
 .home-page {
   padding-top: 0 !important; 
 }
+
 .hero-carousel {
   min-height: 450px;
   position: relative;
   background: #cacdd2;
 }
+
 .carousel-promo-badge {
   position: absolute;
   top: 2rem;
@@ -22,6 +24,129 @@
   animation: pulse 2s infinite;
   z-index: 20;
 }
+
+// —————————————— CORRECTION UNIFIÉE DES BOUTONS HERO ——————————————
+.hero-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 2rem;
+  
+  @media (min-width: 768px) {
+    flex-direction: row;
+    gap: 1.5rem;
+  }
+}
+
+.btn-hero {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1rem 1.75rem;
+  background: linear-gradient(135deg, 
+    $color-primary 0%, 
+    $color-primary-dark 100%);
+  color: white;
+  font-weight: 700;
+  font-size: 0.95rem;
+  border-radius: 2rem;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4), 
+              0 0 30px rgba(59, 130, 246, 0.2);
+  position: relative;
+  overflow: hidden;
+  border: 1.5px solid rgba(59, 130, 246, 0.3);
+  min-width: 180px;
+  text-align: center;
+  flex: 1;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, 
+      $color-primary-dark 0%, 
+      rgba(139, 92, 246, 0.7) 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  
+  &::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    transform: translate(-50%, -50%);
+    transition: width 0.4s, height 0.4s;
+  }
+  
+  .arrow {
+    font-size: 1.2rem;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+    z-index: 1;
+  }
+  
+  &:hover {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 12px 30px rgba(59, 130, 246, 0.5), 
+                0 0 40px rgba(59, 130, 246, 0.3),
+                0 0 60px rgba(139, 92, 246, 0.2);
+    border-color: rgba(59, 130, 246, 0.5);
+    
+    &::before {
+      opacity: 1;
+    }
+    
+    &::after {
+      width: 200px;
+      height: 200px;
+    }
+    
+    .arrow {
+      transform: translateX(4px) rotate(-5deg);
+    }
+  }
+  
+  &:active {
+    transform: translateY(-1px) scale(1.01);
+  }
+  
+  // Variante pour le bouton panier
+  &.cart {
+    background: linear-gradient(135deg, 
+      rgba(16, 185, 129, 0.9) 0%, 
+      rgba(5, 150, 105, 0.9) 100%);
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4), 
+                0 0 30px rgba(16, 185, 129, 0.2);
+    border-color: rgba(16, 185, 129, 0.3);
+    
+    &::before {
+      background: linear-gradient(135deg, 
+        rgba(5, 150, 105, 0.9) 0%, 
+        rgba(4, 120, 87, 0.7) 100%);
+    }
+    
+    &:hover {
+      box-shadow: 0 12px 30px rgba(16, 185, 129, 0.5), 
+                  0 0 40px rgba(16, 185, 129, 0.3),
+                  0 0 60px rgba(5, 150, 105, 0.2);
+      border-color: rgba(16, 185, 129, 0.5);
+    }
+  }
+}
+
+// SUPPRIMER l'ancienne définition dupliquée de .btn-hero plus bas dans le fichier
+// —————————————— FIN CORRECTION BOUTONS ——————————————
+
 // —————————————— PRIX BARRÉ PRO TUNISIEN (HERO + CARTES) ——————————————
 .price-container {
   display: flex;
@@ -81,7 +206,7 @@
   }
 }
 
-// Animation flashy pour le prix barré (optionnel mais TUNISIE PRO STYLE)
+// Animation flashy pour le prix barré
 @keyframes strike-pulse {
   from { text-decoration-color: #ef4444; }
   to { text-decoration-color: #dc2626; }
@@ -102,6 +227,7 @@
   .original-price-hero { font-size: 2rem; }
   .current-price-hero { font-size: 3.5rem; }
 }
+
 .carousel-slide {
   position: absolute;
   inset: 0;
@@ -147,7 +273,7 @@
   0%, 100% { opacity: 0.6; }
   50% { opacity: 1; }
 }
-// —————————————— HERO CAROUSEL ——————————————
+
 // —————————————— HERO CAROUSEL ——————————————
 .hero-carousel {
   position: relative;
@@ -192,11 +318,10 @@
   height: 100%;
   overflow: hidden;
   background: linear-gradient(135deg, 
-    rgba(15, 23, 42, 0.4) 0%,    // ← ultra léger
+    rgba(15, 23, 42, 0.4) 0%,    
     rgba(30, 41, 59, 0.3) 50%,
     rgba(51, 65, 85, 0.2) 100%
   );
-
 }
 
 .slide-image {
@@ -210,8 +335,6 @@
     transform: scale(1);
   }
 }
-
-
 
 .slide-content {
   position: absolute;
@@ -295,78 +418,8 @@
   font-weight: 400;
 }
 
-.btn-hero {
-  display: inline-flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 0.875rem 1.75rem;
-  background: linear-gradient(135deg, 
-    $color-primary 0%, 
-    $color-primary-dark 100%);
-  color: white;
-  font-weight: 800;
-  border-radius: 3rem;
-  text-decoration: none;
-  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-  box-shadow: 0 10px 40px rgba(59, 130, 246, 0.5), 
-              0 0 60px rgba(59, 130, 246, 0.3);
-  position: relative;
-  overflow: hidden;
-  border: 2px solid rgba(59, 130, 246, 0.3);
-  
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, 
-      $color-primary-dark 0%, 
-      rgba(139, 92, 246, 0.8) 100%);
-    opacity: 0;
-    transition: opacity 0.4s ease;
-  }
-  
-  &::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 0;
-    height: 0;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.3);
-    transform: translate(-50%, -50%);
-    transition: width 0.6s, height 0.6s;
-  }
-  
-  .arrow {
-    font-size: 1.5rem;
-    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-    position: relative;
-    z-index: 1;
-  }
-  
-  &:hover {
-    transform: translateY(-5px) scale(1.05);
-    box-shadow: 0 20px 60px rgba(59, 130, 246, 0.6), 
-                0 0 80px rgba(59, 130, 246, 0.4),
-                0 0 100px rgba(139, 92, 246, 0.3);
-    border-color: rgba(59, 130, 246, 0.5);
-    &::before {
-      opacity: 1;
-    }
-    &::after {
-      width: 300px;
-      height: 300px;
-    }
-    .arrow {
-      transform: translateX(10px) rotate(-10deg);
-    }
-  }
-  
-  &:active {
-    transform: translateY(-3px) scale(1.02);
-  }
-}
+// SUPPRIMER la deuxième définition de .btn-hero qui se trouve ici
+// Elle crée un conflit avec la définition améliorée plus haut
 
 .carousel-btn {
   position: absolute;
@@ -468,6 +521,8 @@
                 0 0 30px rgba(139, 92, 246, 0.5);
   }
 }
+
+// ... (le reste de votre CSS reste inchangé)
 // —————————————— SECTIONS COMMUNES ——————————————
 .categories-section,
 .featured-section,

@@ -33,7 +33,6 @@ TechZone illustre une **architecture front-end réaliste** combinant appels API 
 - **Node.js / npm** – Installation et gestion des dépendances.
 - **Angular CLI** – Outil de génération et de compilation du projet.
 - **Git / GitHub** – Gestion de version et hébergement du code source.
-- **GitHub Pages** *(déploiement optionnel)* – Pour héberger la version finale de l’application.
 
 ### 🔹 Bonus techniques (optionnels)
 - **Animations Angular** – Pour les transitions entre pages et les loaders.
@@ -45,8 +44,7 @@ TechZone illustre une **architecture front-end réaliste** combinant appels API 
 ### 1️⃣ Cloner le projet
 Commence par cloner le dépôt GitHub sur ta machine :
 ```bash
-git clone https://github.com/[ton-username]/techzone-angular.git
-cd techzone-angular
+git clone https://github.com/rawenboudhina/Challenge-e-commerce.git
 ```
 
 ### 2️⃣ Installer les dépendances
@@ -70,14 +68,15 @@ ng build --configuration production
 ```
 Les fichiers générés se trouvent dans le dossier dist/.
 
-### 5️⃣ Déploiement sur GitHub Pages
-```bash
-ng add angular-cli-ghpages
-ng deploy
-```
+### 5️⃣ Déploiement sur Vercel
+npm install -g vercel
+vercel
 
-## 🗂️ Structure du projet
-Voici la structure générale du projet **TechZone** :
+
+## 🚀 Démo en ligne
+
+https://techzone-n39ld4y5j-rawenboudhinas-projects.vercel.app/
+
 
 ### 🧩 Organisation modulaire
 Chaque fonctionnalité principale est développée dans un **module indépendant**, avec ses propres composants, services et styles. Cette approche favorise la **maintenabilité**, la **réutilisabilité** et la **clarté du code**.
@@ -166,9 +165,21 @@ C’était la **première fois** que j’intégrais une API REST externe comme D
 La combinaison entre les données externes (DummyJSON) et le **fichier db.json local** enrichi (stock, caractéristiques, avis, etc.) a été complexe. Il fallait maintenir la cohérence entre les deux sources sans backend réel.
 > 💡 J’ai utilisé des **mappings typés** (`Product` interface) et des **opérateurs RxJS (`map`, `mergeMap`)** pour fusionner les données proprement.
 
-### 🔹 3. Déploiement sur GitHub Pages
-Le déploiement avec `ng deploy` nécessitait de configurer correctement le **base href** et le **routing Angular** pour éviter les erreurs 404.
-> 💡 Après plusieurs tests, j’ai compris comment ajuster le `angular.json` et utiliser la commande `ng add angular-cli-ghpages`.
+### 🔹 3. Déploiement sur Vercel
+Voici la procédure simple et propre pour déployer un projet Angular sur Vercel :
+
+1️⃣ Installer Vercel globalement
+npm install -g vercel
+2️⃣ Compiler le projet en production
+ng build --configuration production
+3️⃣ Lancer le déploiement
+vercel
+4️⃣ Lors de la configuration Vercel, choisir :
+
+Build Output Directory :
+dist/techzone-angular
+
+
 
 Ces difficultés m’ont permis de renforcer ma compréhension d’**Angular**, de la **programmation réactive (RxJS)**, et de la **gestion de données API** dans un contexte réel de projet.
 
@@ -176,25 +187,17 @@ Ces difficultés m’ont permis de renforcer ma compréhension d’**Angular**, 
 Voici un aperçu visuel de l’application **TechZone** et de ses principales pages.
 
 ### 🏠 Page d’accueil
-[Ajoute ici ta capture d'écran]
 
 ### 🛍️ Catalogue de produits
-[Ajoute ici ta capture d'écran]
 
 ### 🧾 Détail produit
-[Ajoute ici ta capture d'écran]
 
 ### 🪄 Promotions & Offres spéciales
-[Ajoute ici ta capture d'écran]
 
 ### 🛒 Panier d’achat
-[Ajoute ici ta capture d'écran]
 
 ### 💳 Checkout & Confirmation
-[Ajoute ici ta capture d'écran]
 
 ### 🔐 Authentification (Inscription / Connexion)
-[Ajoute ici ta capture d'écran]
 
 ### 👤 Profil utilisateur
-[Ajoute ici ta capture d'écran]

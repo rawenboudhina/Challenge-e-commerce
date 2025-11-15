@@ -6,7 +6,7 @@ import { ProductService } from '../../services/product.service';
 import { Product } from '../../models/product.model';
 import { ProductCardComponent } from '../../shared/components/product-card/product-card';
 import { CartService } from '../../services/cart.service';
-
+import Swal from 'sweetalert2';
 @Component({
   selector: 'app-home',
   standalone: true,
@@ -71,17 +71,6 @@ ngOnInit(): void {
     if (this.carouselInterval) clearInterval(this.carouselInterval);
   }
   
-/* 
-  loadPromotedProducts(): void {
-    console.log('Produits promo:', products.filter(p => p.discountPercentage || p.isNew));
-    this.productService.getAllProducts(50).subscribe(products => {
-      this.promotedProducts = products
-        .filter(p => (p.discountPercentage ?? 0) > 20 || p.isNew)
-        .sort((a, b) => (b.discountPercentage ?? 0) - (a.discountPercentage ?? 0))
-        .slice(0, 6);
-    }); */
-  
-
   loadFeaturedProducts(): void {
     this.loading = true;
     this.productService.getAllProducts(12).subscribe({
@@ -120,10 +109,22 @@ ngOnInit(): void {
       this.searchTerm = '';
     }
   }
-
+/* 
   onAddToCart(product: Product): void {
     this.cartService.addToCart(product);
-  }
+  } */
+ onAddToCart(product: Product): void {
+  this.cartService.addToCart(product);
+  
+  Swal.fire({
+    title: `${product.title} ajouté au panier !`,
+    icon: 'success',
+    timer: 2000,
+    showConfirmButton: false,
+    position: 'top-end',
+    toast: true
+  });
+}
 trackByProductId(index: number, product: Product): number {
   return product.id;
 }
