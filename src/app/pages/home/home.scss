@@ -25,7 +25,6 @@
   z-index: 20;
 }
 
-// —————————————— CORRECTION UNIFIÉE DES BOUTONS HERO ——————————————
 .hero-actions {
   display: flex;
   flex-direction: column;
@@ -120,7 +119,6 @@
     transform: translateY(-1px) scale(1.01);
   }
   
-  // Variante pour le bouton panier
   &.cart {
     background: linear-gradient(135deg, 
       rgba(16, 185, 129, 0.9) 0%, 
@@ -144,10 +142,6 @@
   }
 }
 
-// SUPPRIMER l'ancienne définition dupliquée de .btn-hero plus bas dans le fichier
-// —————————————— FIN CORRECTION BOUTONS ——————————————
-
-// —————————————— PRIX BARRÉ PRO TUNISIEN (HERO + CARTES) ——————————————
 .price-container {
   display: flex;
   align-items: center;
@@ -206,7 +200,6 @@
   }
 }
 
-// Animation flashy pour le prix barré
 @keyframes strike-pulse {
   from { text-decoration-color: #ef4444; }
   to { text-decoration-color: #dc2626; }
@@ -217,7 +210,6 @@
   to { box-shadow: 0 0 20px rgba(239, 68, 68, 0.8); }
 }
 
-// Responsive hero prix
 @media (min-width: 481px) {
   .original-price-hero { font-size: 1.6rem; }
   .current-price-hero { font-size: 2.8rem; }
@@ -245,7 +237,6 @@
   z-index: 10;
 }
 
-/* SKELETON */
 .skeleton-bg, .skeleton-text, .skeleton-title, 
 .skeleton-price, .skeleton-desc, .skeleton-btn {
   background: #334155;
@@ -274,7 +265,7 @@
   50% { opacity: 1; }
 }
 
-// —————————————— HERO CAROUSEL ——————————————
+
 .hero-carousel {
   position: relative;
   width: 100%;
@@ -283,6 +274,7 @@
   max-height: 900px;
   overflow: hidden;
   background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+    padding-bottom: 80px; // ✅ AJOUT : Espace pour les dots sur mobile
 }
 
 .carousel-container {
@@ -343,6 +335,7 @@
   align-items: center;
   color: white;
   z-index: 2;
+  
 }
 
 .slide-text {
@@ -418,8 +411,6 @@
   font-weight: 400;
 }
 
-// SUPPRIMER la deuxième définition de .btn-hero qui se trouve ici
-// Elle crée un conflit avec la définition améliorée plus haut
 
 .carousel-btn {
   position: absolute;
@@ -482,6 +473,7 @@
   border-radius: 2rem;
   border: 1px solid rgba(59, 130, 246, 0.2);
   
+  
   .indicator {
     width: 8px;
     height: 8px;
@@ -522,8 +514,6 @@
   }
 }
 
-// ... (le reste de votre CSS reste inchangé)
-// —————————————— SECTIONS COMMUNES ——————————————
 .categories-section,
 .featured-section,
 .category-showcase,
