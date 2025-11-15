@@ -461,7 +461,6 @@
 
 .carousel-indicators {
   position: absolute;
-  bottom: 1.5rem;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
@@ -472,6 +471,7 @@
   backdrop-filter: blur(10px);
   border-radius: 2rem;
   border: 1px solid rgba(59, 130, 246, 0.2);
+  bottom: -2.5rem;  // ⬅ déplacer les dots vers le bas
   
   
   .indicator {
