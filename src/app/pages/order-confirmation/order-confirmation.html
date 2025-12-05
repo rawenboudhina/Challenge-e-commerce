@@ -53,7 +53,7 @@
       <div class="detail-section">
         <h3>Détails de la livraison</h3>
         <p>Mode : {{ order?.deliveryMethod | titlecase }}</p>
-        <p>Statut : {{ order?.status | titlecase }}</p>
+        <p>Statut : {{ getStatusLabel(order?.status) }}</p>
         <p>Date de création : {{ order?.createdAt | date:'dd/MM/yyyy HH:mm' }}</p>
       </div>
     </div>

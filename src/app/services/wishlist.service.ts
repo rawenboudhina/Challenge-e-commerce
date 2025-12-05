@@ -33,10 +33,10 @@ export class WishlistService {
   loadWishlist(): void {
     if (!this.authService.isAuthenticated()) return;
 
-    this.http.get<string[]>(`${this.apiUrl}`).pipe(
+    this.http.get<any[]>(`${this.apiUrl}`).pipe(
       tap(ids => {
-        console.log('Wishlist chargée :', ids); // Pour debug
-        this.wishlistSubject.next(ids);
+        const normalized = Array.isArray(ids) ? ids.map(id => id.toString()) : [];
+        this.wishlistSubject.next(normalized);
       }),
       catchError(err => {
         console.error('Erreur chargement wishlist', err);
@@ -50,10 +50,10 @@ export class WishlistService {
   add(productId: string | number): void {
     if (!this.authService.isAuthenticated()) return;
 
-    this.http.post<string[]>(`${this.apiUrl}/add`, { productId: productId.toString() }).pipe(
+    this.http.post<any[]>(`${this.apiUrl}/add`, { productId: productId.toString() }).pipe(
       tap(ids => {
-        this.wishlistSubject.next(ids);
-        console.log('Ajouté à la wishlist :', productId);
+        const normalized = Array.isArray(ids) ? ids.map(id => id.toString()) : [];
+        this.wishlistSubject.next(normalized);
       }),
       catchError(err => {
         console.error('Erreur ajout wishlist', err);
@@ -66,10 +66,10 @@ export class WishlistService {
   remove(productId: string | number): void {
     if (!this.authService.isAuthenticated()) return;
 
-    this.http.post<string[]>(`${this.apiUrl}/remove`, { productId: productId.toString() }).pipe(
+    this.http.post<any[]>(`${this.apiUrl}/remove`, { productId: productId.toString() }).pipe(
       tap(ids => {
-        this.wishlistSubject.next(ids);
-        console.log('Supprimé de la wishlist :', productId);
+        const normalized = Array.isArray(ids) ? ids.map(id => id.toString()) : [];
+        this.wishlistSubject.next(normalized);
       }),
       catchError(err => {
         console.error('Erreur suppression wishlist', err);
@@ -80,9 +80,14 @@ export class WishlistService {
 
   /** Bascule ajout/suppression */
   toggle(productId: string | number): void {
-    if (this.isInWishlist(productId)) {
+    if (!this.authService.isAuthenticated()) return;
+    const idStr = productId.toString();
+    const current = this.wishlistSubject.value;
+    if (current.includes(idStr)) {
+      this.wishlistSubject.next(current.filter(i => i !== idStr));
       this.remove(productId);
     } else {
+      this.wishlistSubject.next([...current, idStr]);
       this.add(productId);
     }
   }

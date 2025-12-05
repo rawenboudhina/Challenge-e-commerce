@@ -122,9 +122,31 @@ trackByProductId(index: number, product: Product): number {
   return product.id;
 }
 
-trackByCategory(index: number, category: any): string {
-  return category.slug;
-}
+  trackByCategory(index: number, category: any): string {
+    return category.slug;
+  }
+  getCategoryIcon(slug: string): string {
+    switch (slug) {
+      case 'smartphones':
+        return 'smartphone';
+      case 'laptops':
+        return 'laptop_mac';
+      case 'womens-dresses':
+        return 'checkroom';
+      case 'mens-shirts':
+        return 'man';
+      case 'fragrances':
+        return 'spa';
+      case 'home-decoration':
+        return 'home';
+      case 'sports-accessories':
+        return 'sports_soccer';
+      case 'womens-jewellery':
+        return 'auto_awesome';
+      default:
+        return 'category';
+    }
+  }
 loadPromotedProducts(): void {
   this.productService.getAllProducts(50).subscribe(products => {
     let strongPromo = products

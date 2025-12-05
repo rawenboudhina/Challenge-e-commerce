@@ -69,7 +69,7 @@
         <img [src]="category.image" [alt]="category.name" class="category-image" loading="lazy">
         <div class="category-overlay"></div>
         <div class="category-content">
-          <span class="category-icon">{{ category.icon }}</span>
+          <span class="material-icons category-icon">{{ getCategoryIcon(category.slug) }}</span>
           <h3 class="category-name">{{ category.name }}</h3>
           <span class="category-arrow">→</span>
         </div>

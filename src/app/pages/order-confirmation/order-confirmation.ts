@@ -5,8 +5,8 @@ import { HttpClient } from '@angular/common/http';
 import { Product, CartItem } from '../../models/product.model';
 
 interface Order {
-  id: number;
-  userId: number;
+  id: string;
+  userId: string;
   items: { productId: number; quantity: number; product?: Product }[];
 shippingAddress: {
   fullName: string;
@@ -46,6 +46,7 @@ export class OrderConfirmation implements OnInit {
   private loadOrder(orderId: string): void {
     this.http.get<Order>(`${this.apiUrl}/orders/${orderId}`).subscribe({
       next: (order) => {
+        const id = (order as any)._id || (order as any).id || orderId;
         order.items.forEach((item) => {
           if (!item.product) {
             this.http
@@ -53,7 +54,7 @@ export class OrderConfirmation implements OnInit {
               .subscribe((product) => (item.product = product));
           }
         });
-        this.order = order;
+        this.order = { ...order, id } as Order;
         this.isLoading = false;
       },
       error: (err) => {
@@ -62,6 +63,23 @@ export class OrderConfirmation implements OnInit {
         this.isLoading = false;
       },
     });
+  }
+
+  getStatusLabel(status: string | undefined): string {
+    switch ((status || '').toLowerCase()) {
+      case 'confirmed':
+        return 'confirmée';
+      case 'pending':
+        return 'en attente';
+      case 'shipped':
+        return 'expédiée';
+      case 'delivered':
+        return 'livrée';
+      case 'cancelled':
+        return 'annulée';
+      default:
+        return status || '';
+    }
   }
 
   getSubtotal(item: any): number {

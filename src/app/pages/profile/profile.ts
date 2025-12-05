@@ -14,7 +14,7 @@ interface Order {
   id: string;
   date: string;
   total: number;
-  status: 'En cours' | 'Livrée' | 'Annulée';
+  status: string;
   items: any[];
 }
 
@@ -114,9 +114,20 @@ private authApiUrl = 'http://localhost:5000/api/auth';
     if (!this.user?.id) return;
     this.http.get<Order[]>(`http://localhost:5000/api/orders`)
       .subscribe(orders => {
+        const toFr = (s: string) => {
+          switch ((s || '').toLowerCase()) {
+            case 'confirmed': return 'Confirmée';
+            case 'pending': return 'En attente';
+            case 'shipped': return 'Expédiée';
+            case 'delivered': return 'Livrée';
+            case 'cancelled': return 'Annulée';
+            default: return s;
+          }
+        };
         this.orders = (orders || []).map(o => ({
           ...o,
-          date: (o as any).date || new Date().toISOString().slice(0,10)
+          date: (o as any).date || new Date().toISOString().slice(0,10),
+          status: toFr((o as any).status)
         }));
       });
   }
