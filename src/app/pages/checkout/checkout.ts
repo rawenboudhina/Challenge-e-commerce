@@ -94,6 +94,12 @@ export class CheckoutComponent implements OnInit {
     });
   }
 
+  startAddNewAddress(): void {
+    this.showNewAddressForm = true;
+    this.submitted = false;
+    this.addressForm.patchValue({ street: '' });
+  }
+
   ngOnInit(): void {
     this.cartService.cart$.subscribe((items) => {
       this.cartItems = items;
@@ -106,17 +112,53 @@ export class CheckoutComponent implements OnInit {
       this.addressForm.patchValue({
         fullName: `${user.firstName} ${user.lastName}`,
       });
-      const main = user.address || '';
-      const extras = Array.isArray((user as any).addresses) ? (user as any).addresses : [];
-      const unique = [main, ...extras].filter((a, i, arr) => a && arr.indexOf(a) === i);
-      this.addresses = unique;
-      if (this.addresses.length > 0) {
-        this.selectedAddressIndex = 0;
-        this.onAddressChange(0);
-      }
+      this.loadAddressesFromServer(user.address || '');
     }
   }
-  private loadAddresses(userId: number, userAddress: string): void {}
+  private loadAddressesFromServer(userAddress: string): void {
+    this.http.get<any>(`${this.apiUrl}/api/auth/me`).subscribe({
+      next: (res) => {
+        const srvUser = res?.user || {};
+        const main = (srvUser.address ?? userAddress ?? '').trim();
+        const extras = Array.isArray(srvUser.addresses) ? srvUser.addresses : [];
+        const cleaned = extras
+          .map((a: string) => (a ?? '').trim())
+          .filter((a: string) => !!a && a !== main);
+        const combined: string[] = [];
+        if (main) combined.push(main);
+        cleaned.forEach((a: string) => combined.push(a));
+        const idStr = String(this.authService.getCurrentUser()?.id || '');
+        const savedLocalRaw = idStr ? localStorage.getItem(`addresses_${idStr}`) : null;
+        const savedLocal: string[] = savedLocalRaw ? JSON.parse(savedLocalRaw) : [];
+        savedLocal.forEach((a: string) => {
+          const v = (a ?? '').trim();
+          if (v && !combined.includes(v)) combined.push(v);
+        });
+        this.addresses = combined.length > 0 ? combined : (userAddress ? [userAddress] : []);
+        if (this.addresses.length > 0) {
+          this.selectedAddressIndex = 0;
+          this.onAddressChange(0);
+        }
+      },
+      error: () => {
+        const idStr = String(this.authService.getCurrentUser()?.id || '');
+        const savedLocalRaw = idStr ? localStorage.getItem(`addresses_${idStr}`) : null;
+        const savedLocal: string[] = savedLocalRaw ? JSON.parse(savedLocalRaw) : [];
+        const combined = [] as string[];
+        const main = (userAddress ?? '').trim();
+        if (main) combined.push(main);
+        savedLocal.forEach((a: string) => {
+          const v = (a ?? '').trim();
+          if (v && !combined.includes(v)) combined.push(v);
+        });
+        this.addresses = combined;
+        if (this.addresses.length > 0) {
+          this.selectedAddressIndex = 0;
+          this.onAddressChange(0);
+        }
+      }
+    });
+  }
 
   onAddressChange(index: number): void {
     this.selectedAddressIndex = index;
@@ -133,7 +175,16 @@ export class CheckoutComponent implements OnInit {
       const user = this.authService.getCurrentUser() as User;
       if (user && !this.addresses.includes(newAddress)) {
         this.addresses.push(newAddress);
-        
+        const main = user.address?.trim() || newAddress.trim();
+        const extras = this.addresses.filter(a => a !== main);
+        this.http.patch<any>(`${this.apiUrl}/api/auth/me`, { address: main, addresses: extras }).subscribe({
+          next: () => {},
+          error: () => {}
+        });
+        const idStr = String(user.id || '');
+        if (idStr) {
+          localStorage.setItem(`addresses_${idStr}`, JSON.stringify(this.addresses));
+        }
         this.onAddressChange(this.addresses.length - 1);
         alert('Adresse ajoutée avec succès !');
       } else if (this.addresses.includes(newAddress)) {
@@ -168,6 +219,10 @@ export class CheckoutComponent implements OnInit {
 
     this.isLoading = true;
 
+    const selectedStreet = this.selectedAddressIndex !== null && this.addresses[this.selectedAddressIndex]
+      ? this.addresses[this.selectedAddressIndex]
+      : this.addressForm.value.street;
+
     const order: Order = {
       userId: this.authService.getCurrentUser()?.id
         ? Number(this.authService.getCurrentUser()!.id)
@@ -176,7 +231,10 @@ export class CheckoutComponent implements OnInit {
         productId: item.product.id,
         quantity: item.quantity,
       })),
-      shippingAddress: this.addressForm.value,
+      shippingAddress: {
+        fullName: this.addressForm.value.fullName,
+        street: selectedStreet,
+      },
       deliveryMethod: this.selectedDelivery!.id,
       paymentInfo: this.paymentForm.value,
       subtotal: this.subtotal,

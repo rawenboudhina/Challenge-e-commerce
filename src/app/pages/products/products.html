@@ -18,8 +18,8 @@
               name="category"
               (change)="applyFilters()">
         <option value="">Toutes les catégories</option>
-        @for (cat of categories; track cat) {
-          <option [value]="cat">{{ formatCategory(cat) }}</option>
+        @for (cat of categories; track cat.slug) {
+          <option [value]="cat.slug">{{ cat.name }}</option>
         }
       </select>
     </div>

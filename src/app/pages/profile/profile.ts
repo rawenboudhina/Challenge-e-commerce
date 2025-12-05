@@ -112,10 +112,13 @@ private authApiUrl = 'http://localhost:5000/api/auth';
 
   private loadOrders(): void {
     if (!this.user?.id) return;
-    this.http.get<Order[]>(`${this.apiUrl}/orders?userId=${this.user.id}`)
-      .subscribe(orders => 
-        this.orders = orders
-      );
+    this.http.get<Order[]>(`http://localhost:5000/api/orders`)
+      .subscribe(orders => {
+        this.orders = (orders || []).map(o => ({
+          ...o,
+          date: (o as any).date || new Date().toISOString().slice(0,10)
+        }));
+      });
   }
 
  private loadFavorites(): void {
@@ -238,8 +241,9 @@ private authApiUrl = 'http://localhost:5000/api/auth';
   private saveAddressesToStorage(): void {}
 
 removeFavorite(productId: string | number): void {
+  const title = this.favorites.find(f => String(f.id) === String(productId))?.title || 'Produit';
   Swal.fire({
-    title: 'Retirer des favoris ?',
+    title: `Retirer « ${title} » des favoris ?`,
     icon: 'question',
     showCancelButton: true,
     confirmButtonText: 'Oui',

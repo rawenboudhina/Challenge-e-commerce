@@ -70,7 +70,6 @@ private setCurrentUser(user: any): void {
     firstName: user.firstName || user.user?.firstName || '',
     lastName: user.lastName || user.user?.lastName || '',
     address: user.address || user.user?.address || '',
-    addresses: user.addresses || user.user?.addresses || [],
     token: user.token
   };
 

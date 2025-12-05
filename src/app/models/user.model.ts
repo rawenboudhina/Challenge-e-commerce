@@ -7,7 +7,6 @@ export interface User {
   firstName: string;
   lastName: string;
   address: string;
-  addresses?: string[];
   password?: string;
   token?: string;
 }

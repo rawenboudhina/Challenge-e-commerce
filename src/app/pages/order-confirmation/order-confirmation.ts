@@ -31,7 +31,7 @@ export class OrderConfirmation implements OnInit {
   order: Order | null = null;
   isLoading = true;
 
-  private apiUrl = 'http://localhost:5000';
+  private apiUrl = 'http://localhost:5000/api';
   constructor(private route: ActivatedRoute, private http: HttpClient) {}
 
   ngOnInit(): void {
@@ -49,7 +49,7 @@ export class OrderConfirmation implements OnInit {
         order.items.forEach((item) => {
           if (!item.product) {
             this.http
-              .get<Product>(`https://dummyjson.com/products/${item.productId}`)
+              .get<Product>(`${this.apiUrl}/products/${item.productId}`)
               .subscribe((product) => (item.product = product));
           }
         });

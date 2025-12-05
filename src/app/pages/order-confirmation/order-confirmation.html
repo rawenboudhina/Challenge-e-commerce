@@ -47,7 +47,8 @@
     <div class="confirmation-details">
       <div class="detail-section">
         <h3>Adresse de livraison</h3>
-        <p>{{ order?.shippingAddress }}</p>
+        <p><strong>{{ order?.shippingAddress?.fullName }}</strong></p>
+        <p>{{ order?.shippingAddress?.street }}</p>
       </div>
       <div class="detail-section">
         <h3>Détails de la livraison</h3>

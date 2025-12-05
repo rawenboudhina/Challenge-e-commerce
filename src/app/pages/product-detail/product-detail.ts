@@ -322,8 +322,10 @@ this.productService.getProductsByCategory(this.product!.category).subscribe({   
       return;
     }
     this.showReviewForm = true;
+    const u = this.authService.getCurrentUser();
+    const displayName = `${u?.firstName || ''} ${u?.lastName || ''}`.trim() || 'Client';
     this.newReview = {
-      user: this.authService.getCurrentUser()?.firstName || 'Client',
+      user: displayName,
       rating: 5,
       comment: '',
       title: '',                 
@@ -351,29 +353,25 @@ this.productService.getProductsByCategory(this.product!.category).subscribe({   
       alert('Veuillez remplir le titre, le commentaire et la note');
       return;
     }
-    const fullReview: Review = {
-      user: this.authService.getCurrentUser()?.firstName || 'Client',
-      rating,
-      comment,
-      title,                                      // ← titre ajouté
-      date: new Date().toLocaleDateString('fr-FR'),
-      helpful: 0,
-      helpfulClicked: false,
-      justAdded: true                             // ← animation
-    };
-    this.allReviews.unshift(fullReview);
-    this.updateReviewsDisplay();
-    this.updateOverallRating();
-    this.showReviewForm = false;
-    this.newReview = { rating: 0, comment: '', title: '' };
-
-    // Animation disparaît après 3s
-    setTimeout(() => {
-      fullReview.justAdded = false;
-      this.cdr.markForCheck();
-    }, 3000);
-
-    this.showToast('Merci pour votre avis ! Il apparaît en premier', 'success');
+    if (!this.product) return;
+    this.productService.submitReview(this.product.id, { rating, comment, title }).subscribe({
+      next: (res) => {
+        const updated = res?.product;
+        if (updated?.reviews && Array.isArray(updated.reviews)) {
+          this.allReviews = [...updated.reviews] as Review[];
+          this.updateReviewsDisplay();
+        }
+        if (updated?.rating) {
+          (this.product as any).rating = updated.rating;
+        }
+        this.showReviewForm = false;
+        this.newReview = { rating: 0, comment: '', title: '' };
+        this.showToast('Merci pour votre avis !', 'success');
+      },
+      error: () => {
+        alert('Échec de l\'enregistrement de l\'avis. Réessayez.');
+      }
+    });
   }
 
   private updateReviewsDisplay(): void {

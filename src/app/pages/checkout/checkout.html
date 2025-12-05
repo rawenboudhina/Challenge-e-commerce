@@ -52,20 +52,15 @@
             </label>
           </div>
         }
-        <button type="button" class="btn-add-address" (click)="showNewAddressForm = true">Ajouter une nouvelle adresse</button>
+        <button type="button" class="btn-add-address" (click)="startAddNewAddress()">Ajouter une nouvelle adresse</button>
       </div>
       <div *ngIf="addresses.length === 0" class="empty-state">
         <p>Aucune adresse enregistrée.</p>
-        <button type="button" class="btn-add-address" (click)="showNewAddressForm = true">Ajouter une adresse</button>
+        <button type="button" class="btn-add-address" (click)="startAddNewAddress()">Ajouter une adresse</button>
       </div>
 
       <!-- Formulaire pour nouvelle adresse ou édition (seulement fullName + street) -->
       <form [formGroup]="addressForm" novalidate *ngIf="showNewAddressForm || addresses.length === 0">
-        <div class="form-group">
-          <label for="fullName">Nom complet *</label>
-          <input id="fullName" type="text" formControlName="fullName" class="form-control" [class.error]="submitted && addressFormControl('fullName').invalid">
-          <div *ngIf="submitted && addressFormControl('fullName').invalid" class="error-message">Nom complet requis.</div>
-        </div>
         <div class="form-group">
           <label for="street">Adresse *</label>
           <input id="street" type="text" formControlName="street" class="form-control" [class.error]="submitted && addressFormControl('street').invalid">

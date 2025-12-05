@@ -27,7 +27,7 @@ export class Products implements OnInit {
   products: Product[] = [];
   filteredProducts: Product[] = [];
   paginatedProducts: Product[] = [];
-  categories: string[] = [];
+  categories: { name: string; slug: string }[] = [];
   loading = true;
   currentPage = 1;
   itemsPerPage = 20;
@@ -51,7 +51,11 @@ export class Products implements OnInit {
   ) {}
 
   ngOnInit() {
-    
+    // Charger la liste des catégories (objets avec nom FR + slug)
+    this.productService.getCategoryList().subscribe((cats: any[]) => {
+      this.categories = cats;
+    });
+
     this.loadProducts();
     this.route.queryParams.subscribe(params => {
       // Charger filtres depuis query params si présents

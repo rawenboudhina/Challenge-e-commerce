@@ -4,7 +4,6 @@ import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, of } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 import { AuthService } from './auth.service';
-import Swal from 'sweetalert2';
 
 @Injectable({
   providedIn: 'root'
@@ -12,6 +11,7 @@ import Swal from 'sweetalert2';
 export class WishlistService {
   private apiUrl = 'http://localhost:5000/api/wishlist';
 
+  // Le backend renvoie un tableau de strings (ObjectId.toString())
   private wishlistSubject = new BehaviorSubject<string[]>([]);
   public wishlist$ = this.wishlistSubject.asObservable();
 
@@ -33,10 +33,10 @@ export class WishlistService {
   loadWishlist(): void {
     if (!this.authService.isAuthenticated()) return;
 
-    this.http.get<(string | number)[]>(`${this.apiUrl}`).pipe(
+    this.http.get<string[]>(`${this.apiUrl}`).pipe(
       tap(ids => {
-        const normalized = (ids || []).map(id => id.toString());
-        this.wishlistSubject.next(normalized);
+        console.log('Wishlist chargée :', ids); // Pour debug
+        this.wishlistSubject.next(ids);
       }),
       catchError(err => {
         console.error('Erreur chargement wishlist', err);
@@ -50,15 +50,13 @@ export class WishlistService {
   add(productId: string | number): void {
     if (!this.authService.isAuthenticated()) return;
 
-    this.http.post<(string | number)[]>(`${this.apiUrl}/add`, { productId: productId.toString() }).pipe(
+    this.http.post<string[]>(`${this.apiUrl}/add`, { productId: productId.toString() }).pipe(
       tap(ids => {
-        const normalized = (ids || []).map(id => id.toString());
-        this.wishlistSubject.next(normalized);
-        Swal.fire({ icon: 'success', title: 'Ajouté aux favoris', timer: 1500, toast: true, position: 'top-end', showConfirmButton: false });
+        this.wishlistSubject.next(ids);
+        console.log('Ajouté à la wishlist :', productId);
       }),
       catchError(err => {
         console.error('Erreur ajout wishlist', err);
-        Swal.fire({ icon: 'error', title: 'Erreur ajout favoris', timer: 2000, toast: true, position: 'top-end', showConfirmButton: false });
         return of([]);
       })
     ).subscribe();
@@ -68,15 +66,13 @@ export class WishlistService {
   remove(productId: string | number): void {
     if (!this.authService.isAuthenticated()) return;
 
-    this.http.post<(string | number)[]>(`${this.apiUrl}/remove`, { productId: productId.toString() }).pipe(
+    this.http.post<string[]>(`${this.apiUrl}/remove`, { productId: productId.toString() }).pipe(
       tap(ids => {
-        const normalized = (ids || []).map(id => id.toString());
-        this.wishlistSubject.next(normalized);
-        Swal.fire({ icon: 'info', title: 'Retiré des favoris', timer: 1500, toast: true, position: 'top-end', showConfirmButton: false });
+        this.wishlistSubject.next(ids);
+        console.log('Supprimé de la wishlist :', productId);
       }),
       catchError(err => {
         console.error('Erreur suppression wishlist', err);
-        Swal.fire({ icon: 'error', title: 'Erreur suppression favoris', timer: 2000, toast: true, position: 'top-end', showConfirmButton: false });
         return of([]);
       })
     ).subscribe();

@@ -1,9 +1,10 @@
 // src/app/services/cart.service.ts
 import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, forkJoin } from 'rxjs';
 import { Product, CartItem } from '../models/product.model';
 import { AuthService } from './auth.service';
 import { HttpClient } from '@angular/common/http';
+import { ProductService } from './product.service';
 
 @Injectable({
   providedIn: 'root'
@@ -16,7 +17,8 @@ export class CartService {
 
   constructor(
     private authService: AuthService,
-    private http: HttpClient
+    private http: HttpClient,
+    private productService: ProductService
   ) {
     this.authService.currentUser$.subscribe(user => {
       if (user) {
@@ -29,13 +31,7 @@ export class CartService {
 
   private loadCartFromServer(): void {
     this.http.get<any>(this.apiUrl).subscribe({
-      next: (res) => {
-        this.cartItems = res.items.map((i: any) => ({
-          product: { id: i.productId } as Product,
-          quantity: i.quantity
-        }));
-        this.cartSubject.next([...this.cartItems]);
-      },
+      next: (res) => this.enrichFromServer(res),
       error: () => {
         this.cartItems = [];
         this.cartSubject.next([]);
@@ -55,11 +51,27 @@ export class CartService {
 
   // UTILISE TOUJOURS LA RÉPONSE DU SERVEUR — JAMAIS loadCartFromServer()
   private syncCartFromResponse(res: any): void {
-    this.cartItems = res.items.map((i: any) => ({
-      product: { id: i.productId } as Product,
-      quantity: i.quantity
+    this.enrichFromServer(res);
+  }
+
+  private enrichFromServer(res: any): void {
+    const items: { id: number; quantity: number }[] = (res?.items || []).map((i: any) => ({
+      id: Number(i.productId),
+      quantity: Number(i.quantity)
     }));
-    this.cartSubject.next([...this.cartItems]);
+    if (items.length === 0) {
+      this.cartItems = [];
+      this.cartSubject.next([]);
+      return;
+    }
+    forkJoin<Product[]>(items.map((it: { id: number; quantity: number }) => this.productService.getProductById(it.id)))
+      .subscribe((products: Product[]) => {
+        this.cartItems = products.map((p: Product, idx: number) => ({
+          product: p,
+          quantity: items[idx].quantity
+        }));
+        this.cartSubject.next([...this.cartItems]);
+      });
   }
 
   addToCart(product: Product, quantity = 1): void {
@@ -142,7 +154,7 @@ getCurrentQuantity(productId: number): number {
   clearCart(): void {
     this.cartItems = [];
     if (this.authService.isAuthenticated()) {
-      this.http.post<any>(`${this.apiUrl}/add`, { items: [] }).subscribe({
+      this.http.delete<any>(`${this.apiUrl}/clear`).subscribe({
         next: () => this.cartSubject.next([])
       });
     } else {
