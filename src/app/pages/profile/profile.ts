@@ -1,13 +1,14 @@
 import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { RouterModule, ActivatedRoute } from '@angular/router'; // Ajoutez ActivatedRoute
+import { RouterModule, ActivatedRoute } from '@angular/router'; 
 import { AuthService } from '../../services/auth.service';
 import { WishlistService } from '../../services/wishlist.service';
 import { HttpClient } from '@angular/common/http';
 import { ProductService } from '../../services/product.service';
 import { Subject, takeUntil, forkJoin } from 'rxjs';
 import { Product } from '../../models/product.model';
+import Swal from 'sweetalert2';
 
 interface Order {
   id: string;
@@ -31,10 +32,10 @@ export class ProfileComponent implements OnInit, OnDestroy {
   private productService = inject(ProductService);
   private http = inject(HttpClient);
   private fb = inject(FormBuilder);
-  private route = inject(ActivatedRoute); // Ajoutez cette ligne
+  private route = inject(ActivatedRoute); 
 
-  private apiUrl = 'http://localhost:3000';
-
+private apiUrl = 'http://localhost:5000/api/users'; 
+private authApiUrl = 'http://localhost:5000/api/auth';
   profileForm!: FormGroup;
   activeTab = 'profile';
   updateSuccess = false;
@@ -52,33 +53,33 @@ export class ProfileComponent implements OnInit, OnDestroy {
     { id: 'addresses', label: 'Adresses' }
   ];
 
-  ngOnInit(): void {
-    // Lecture simple du paramètre 'tab' de l'URL
-    this.route.queryParams.subscribe(params => {
-      const tabParam = params['tab'];
-      if (tabParam && this.tabs.some(tab => tab.id === tabParam)) {
-        this.activeTab = tabParam;
+ ngOnInit(): void {
+  this.route.queryParams.subscribe(params => {
+    const tabParam = params['tab'];
+    if (tabParam && this.tabs.some(tab => tab.id === tabParam)) {
+      this.activeTab = tabParam;
+    }
+  });
+
+  this.authService.currentUser$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(user => {
+      this.user = user;
+      if (user) {
+        this.initForm();
+        this.loadAllData(); // ← ici on recharge TOUT, y compris les adresses
       }
     });
 
-    this.authService.currentUser$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(user => {
-        this.user = user;
-        if (user) {
-          this.loadAllData();
-          this.initForm();
-        }
-      });
-
-    if (this.authService.isAuthenticated()) {
-      this.user = this.authService.getCurrentUser();
-      this.loadAllData();
-      this.initForm();
-    }
+  // Cas où l'utilisateur est déjà connecté au chargement
+  if (this.authService.isAuthenticated()) {
+    this.user = this.authService.getCurrentUser();
+    this.initForm();
+    this.loadAllData();
+    this.refreshUserFromServer();
   }
+}
 
-  // TOUT LE RESTE DE VOTRE CODE RESTE IDENTIQUE
   private initForm(): void {
     this.profileForm = this.fb.group({
       firstName: [this.user?.firstName || '', Validators.required],
@@ -86,6 +87,21 @@ export class ProfileComponent implements OnInit, OnDestroy {
       email: [this.user?.email || '', [Validators.required, Validators.email]],
       address: [this.user?.address || '', Validators.required]
     });
+  }
+
+  private refreshUserFromServer(): void {
+    this.http.get<any>(`${this.authApiUrl}/me`)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(res => {
+        const srvUser = res?.user;
+        if (srvUser) {
+          const payload = { ...this.user, ...srvUser, token: this.user?.token };
+          localStorage.setItem('currentUser', JSON.stringify(payload));
+          (this.authService as any)['currentUserSubject'].next(payload);
+          this.user = payload;
+          this.loadAddresses();
+        }
+      });
   }
 
   private loadAllData(): void {
@@ -102,33 +118,40 @@ export class ProfileComponent implements OnInit, OnDestroy {
       );
   }
 
-  private loadFavorites(): void {
-    this.wishlistService.wishlist$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(ids => {
-        if (ids.length === 0) {
-          this.favorites = [];
-          return;
-        }
-        forkJoin(ids.map(id => this.productService.getProductById(id)))
-          .subscribe(products => {
-            this.favorites = products.filter(p => p !== null) as Product[];
-          });
+ private loadFavorites(): void {
+  this.wishlistService.wishlist$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(ids => {
+      if (ids.length === 0) {
+        this.favorites = [];
+        return;
+      }
+      forkJoin(
+        ids.map(id => this.productService.getProductById(id.toString())) // ← .toString()
+      ).subscribe(products => {
+        this.favorites = products.filter(p => p !== null) as Product[];
       });
-
-    if (this.user) this.wishlistService.loadWishlist();
-  }
-
+    });
+}
   private loadAddresses(): void {
-    this.mainAddress = this.user?.address || 'Aucune adresse principale';
-    const saved = localStorage.getItem(`addresses_${this.user?.id}`);
-    this.addresses = saved ? JSON.parse(saved) : [this.mainAddress];
-    
-    if (!this.addresses.includes(this.mainAddress)) {
-      this.addresses.unshift(this.mainAddress);
-    }
+  if (!this.user?.id) {
+    this.addresses = [];
+    this.mainAddress = '';
+    return;
   }
 
+  const rawAddress = this.user.address?.trim();
+  this.mainAddress = rawAddress && rawAddress !== '' ? rawAddress : '';
+
+  const serverAddresses: string[] = Array.isArray(this.user.addresses) ? (this.user.addresses as string[]) : [];
+  const cleaned = serverAddresses
+    .map((a: string) => a?.trim())
+    .filter((a: string) => !!a && a !== this.mainAddress);
+
+  this.addresses = [];
+  if (this.mainAddress) this.addresses.push(this.mainAddress);
+  cleaned.forEach((a: string) => this.addresses.push(a));
+}
   setActiveTab(tab: string): void {
     this.activeTab = tab;
   }
@@ -136,22 +159,27 @@ export class ProfileComponent implements OnInit, OnDestroy {
   updateProfile(): void {
     if (this.profileForm.valid && this.user?.id) {
       const updatedData = this.profileForm.value;
-      this.http.patch(`${this.apiUrl}/users/${this.user.id}`, updatedData)
-        .subscribe(() => {
-          const payload = { ...this.user, ...updatedData };
+      const newMain = (updatedData.address ?? '').trim();
+      const extras = Array.isArray(this.user?.addresses)
+        ? (this.user.addresses as string[]).filter(a => (a ?? '').trim() && (a ?? '').trim() !== newMain)
+        : [];
+
+      this.http.patch<any>(`${this.authApiUrl}/me`, { ...updatedData, addresses: extras }).subscribe({
+        next: (res) => {
+          const srvUser = res?.user || {};
+          const payload = { ...this.user, ...srvUser, token: this.user?.token };
           localStorage.setItem('currentUser', JSON.stringify(payload));
-          this.authService['currentUserSubject'].next(payload);
+          (this.authService as any)['currentUserSubject'].next(payload);
           this.user = payload;
-          this.mainAddress = updatedData.address;
-
-          if (!this.addresses.includes(this.mainAddress)) {
-            this.addresses.unshift(this.mainAddress);
-          }
-          this.saveAddressesToStorage();
-
+          this.loadAddresses();
           this.updateSuccess = true;
-          setTimeout(() => this.updateSuccess = false, 3000);
-        });
+          Swal.fire({ icon: 'success', title: 'Profil mis à jour', timer: 1500, showConfirmButton: false });
+          setTimeout(() => this.updateSuccess = false, 1500);
+        },
+        error: () => {
+          Swal.fire({ icon: 'error', title: 'Échec de la mise à jour', timer: 2000, showConfirmButton: false });
+        }
+      });
     }
   }
 
@@ -161,8 +189,22 @@ export class ProfileComponent implements OnInit, OnDestroy {
       const addr = newAddr.trim();
       if (!this.addresses.includes(addr)) {
         this.addresses.push(addr);
-        this.saveAddressesToStorage();
-        this.showToast('Adresse ajoutée !', 'success');
+        const main = this.profileForm.value.address?.trim() || this.mainAddress;
+        const extras = this.addresses.filter(a => a !== main);
+        this.http.patch<any>(`${this.authApiUrl}/me`, { address: main, addresses: extras }).subscribe({
+          next: (res) => {
+            const srvUser = res?.user || {};
+            const payload = { ...this.user, ...srvUser, token: this.user?.token };
+            localStorage.setItem('currentUser', JSON.stringify(payload));
+            (this.authService as any)['currentUserSubject'].next(payload);
+            this.user = payload;
+            this.loadAddresses();
+            Swal.fire({ icon: 'success', title: 'Adresse ajoutée', timer: 1500, showConfirmButton: false });
+          },
+          error: () => {
+            Swal.fire({ icon: 'error', title: 'Échec de l’ajout', timer: 2000, showConfirmButton: false });
+          }
+        });
       } else {
         alert('Cette adresse existe déjà !');
       }
@@ -175,34 +217,41 @@ export class ProfileComponent implements OnInit, OnDestroy {
       return;
     }
     this.addresses.splice(index, 1);
-    this.saveAddressesToStorage();
-    this.showToast('Adresse supprimée', 'success');
+    const main = this.profileForm.value.address?.trim() || this.mainAddress;
+    const extras = this.addresses.filter(a => a !== main);
+    this.http.patch<any>(`${this.authApiUrl}/me`, { address: main, addresses: extras }).subscribe({
+      next: (res) => {
+        const srvUser = res?.user || {};
+        const payload = { ...this.user, ...srvUser, token: this.user?.token };
+        localStorage.setItem('currentUser', JSON.stringify(payload));
+        (this.authService as any)['currentUserSubject'].next(payload);
+        this.user = payload;
+        this.loadAddresses();
+        Swal.fire({ icon: 'success', title: 'Adresse supprimée', timer: 1500, showConfirmButton: false });
+      },
+      error: () => {
+        Swal.fire({ icon: 'error', title: 'Échec de la suppression', timer: 2000, showConfirmButton: false });
+      }
+    });
   }
 
-  private saveAddressesToStorage(): void {
-    if (this.user?.id) {
-      localStorage.setItem(`addresses_${this.user.id}`, JSON.stringify(this.addresses));
+  private saveAddressesToStorage(): void {}
+
+removeFavorite(productId: string | number): void {
+  Swal.fire({
+    title: 'Retirer des favoris ?',
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonText: 'Oui',
+    cancelButtonText: 'Annuler'
+  }).then(result => {
+    if (result.isConfirmed) {
+      this.wishlistService.remove(productId);
     }
-  }
+  });
+}
 
-  removeFavorite(productId: number): void {
-    const product = this.favorites.find(p => p.id === productId);
-    if (product) this.wishlistService.toggle(product);
-  }
-
-  private showToast(message: string, type: 'success' | 'error' = 'success'): void {
-    const toast = document.createElement('div');
-    toast.textContent = message;
-    toast.style.cssText = `
-      position: fixed; top: 20px; right: 20px; z-index: 9999;
-      background: ${type === 'success' ? '#28a745' : '#dc3545'};
-      color: white; padding: 16px 32px; border-radius: 16px;
-      font-weight: 600; box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-      animation: slideIn 0.5s ease;
-    `;
-    document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 3000);
-  }
+  
 
   ngOnDestroy(): void {
     this.destroy$.next();

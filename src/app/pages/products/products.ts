@@ -51,7 +51,7 @@ export class Products implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.loadCategories();
+    
     this.loadProducts();
     this.route.queryParams.subscribe(params => {
       // Charger filtres depuis query params si présents
@@ -61,11 +61,7 @@ export class Products implements OnInit {
     });
   }
 
-  loadCategories() {
-    this.productService.getCategories().subscribe(cats => {
-      this.categories = cats;
-    });
-  }
+
 
   loadProducts() {
     this.loading = true;

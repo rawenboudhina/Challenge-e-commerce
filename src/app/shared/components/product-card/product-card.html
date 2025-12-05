@@ -50,16 +50,16 @@
 
     <!-- ACTIONS RAPIDES -->
     <div class="quick-actions">
-      <button *ngIf="wishlistService.isLoggedIn$ | async"
-              class="wishlist-btn"
-              (click)="onToggleWishlist($event)"
-              [class.active]="isWishlisted"
-              [title]="isWishlisted ? 'Retirer de la wishlist' : 'Ajouter à la wishlist'">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-        </svg>
-      </button>
-
+     <button
+  class="wishlist-btn"
+  (click)="onToggleWishlist($event)"
+  [title]="isWishlisted ? 'Retirer des favoris' : 'Ajouter aux favoris'"
+  *ngIf="isLoggedIn">
+  
+  <span class="material-icons" [style.color]="isWishlisted ? '#e74c3c' : ''">
+    {{ isWishlisted ? 'favorite' : 'favorite_border' }}
+  </span>
+</button>
       <button class="quick-buy-btn"
               (click)="onQuickBuy($event); $event.stopPropagation(); $event.preventDefault()"
               [disabled]="!product.stock || product.stock <= 0">

@@ -1,4 +1,3 @@
-// src/app/pages/checkout/checkout.component.scss (corrigé : styles adresses déplacés hors media query pour visibilité)
 .checkout-page {
   padding: 20px 0;
   background-color: #0f172a;
@@ -293,7 +292,6 @@
     }
   }
 
-  // ← AJOUTÉ : Styles pour adresses (déplacés hors media query pour visibilité)
   .address-options {
     display: flex !important;
     flex-direction: column;
@@ -329,14 +327,14 @@
         flex: 1;
         cursor: pointer;
         margin: 0;
-        display: block !important; // ← AJOUTÉ : Force visibilité label
+        display: block !important; 
 
         p {
           margin: 0;
-          color: #333 !important; // ← AJOUTÉ : Force couleur texte visible
+          color: #333 !important;
           font-size: 1em;
           padding: 5px 0;
-          visibility: visible !important; // ← AJOUTÉ : Force visibilité
+          visibility: visible !important; 
         }
       }
     }
@@ -411,7 +409,6 @@
       }
     }
 
-    // ← AJOUTÉ : Styles responsive pour adresses
     .address-options {
       .address-option {
         flex-direction: column;

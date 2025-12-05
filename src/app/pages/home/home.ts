@@ -108,8 +108,7 @@ ngOnInit(): void {
   }
 
  onAddToCart(product: Product): void {
-  this.cartService.addToCart(product);
-  
+this.cartService.addToCart(product); // UN SEUL APPEL ICI  
   Swal.fire({
     title: `${product.title} ajouté au panier !`,
     icon: 'success',

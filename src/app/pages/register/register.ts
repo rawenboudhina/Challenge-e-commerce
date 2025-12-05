@@ -1,4 +1,3 @@
-// src/app/features/auth/register.component.ts
 import { Component ,inject} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators, AbstractControl } from '@angular/forms';
@@ -8,7 +7,7 @@ import { AuthService } from '../../services/auth.service';
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule], // AJOUTÉ
+  imports: [CommonModule, ReactiveFormsModule, RouterModule], 
   templateUrl: './register.html',
   styleUrls: ['./register.scss']
 })
@@ -37,7 +36,6 @@ export class RegisterComponent {
     return pwd === confirm ? null : { mismatch: true };
   }
 
-  // src/app/pages/register/register.component.ts
 onSubmit() {
   if (this.registerForm.invalid) {
     this.errorMessage = 'Veuillez corriger les erreurs.';
@@ -47,7 +45,6 @@ onSubmit() {
   this.loading = true;
   this.errorMessage = '';
 
-  // Nettoie et garantit que toutes les valeurs sont des strings
   const raw = this.registerForm.value;
   const data = {
     firstName: raw.firstName?.trim() || '',

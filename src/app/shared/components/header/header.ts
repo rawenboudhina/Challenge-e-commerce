@@ -19,95 +19,83 @@ import { Category } from '../../../models/category.model';
     trigger('fadeInOut', [
       transition(':enter', [
         style({ opacity: 0, transform: 'scale(0.95)' }),
-        animate('200ms ease-out', style({ opacity: 1, transform: 'scale(1)' }))
+        animate('200ms ease-out', style({ opacity: 1, transform: 'scale(1)' })),
       ]),
       transition(':leave', [
-        animate('150ms ease-in', style({ opacity: 0, transform: 'scale(0.95)' }))
-      ])
-    ])
-  ]
+        animate('150ms ease-in', style({ opacity: 0, transform: 'scale(0.95)' })),
+      ]),
+    ]),
+  ],
 })
 export class HeaderComponent implements OnInit, OnDestroy {
-  // États existants
   cartItemCount = 0;
   isAuthenticated = false;
   currentUser: any = null;
-  // categories: string[] = [];
-  categories: any[] = []; // Changé de string[] à any[] (ou interface Category)
+  categories: any[] = [];
   isMenuOpen = false;
   isScrolled = false;
   isDesktop = window.innerWidth >= 769;
   isMobile = window.innerWidth <= 768;
 
-  // Panier
   showCartDropdown = false;
   cartItems: any[] = [];
   cartTotal = 0;
   private cartSubscription: any;
 
-  // Recherche
   searchQuery = '';
   searchResults: any[] = [];
   showSearchDropdown = false;
   private searchTerms = new Subject<string>();
   @ViewChild('searchInput') searchInput!: ElementRef;
 
-  // Profil
   showUserDropdown = false;
 
   constructor(
     private cartService: CartService,
     private authService: AuthService,
     private productService: ProductService,
-  
+
     private router: Router
   ) {}
 
   ngOnInit() {
-    // Panier
     this.cartSubscription = this.cartService.cart$.subscribe(() => {
       this.cartItemCount = this.cartService.getItemCount();
       this.updateMiniCart();
     });
 
-    // Auth
-    this.authService.currentUser$.subscribe(user => {
+    this.authService.currentUser$.subscribe((user) => {
       this.currentUser = user;
       this.isAuthenticated = !!user;
+      console.log('User connecté dans header:', user); // ← Tu verras enfin Ali !
+    });
+    this.productService.getCategoryList().subscribe((cats) => {
+      this.categories = cats;
+    });
+    this.productService.getCategoryList().subscribe((cats) => {
+      this.categories = cats;
     });
 
-    // Catégories
-  /*   this.productService.getCategories().subscribe(cats => {
-      this.categories = cats;;
-    }); */
-    // Dans ngOnInit
-this.productService.getCategoryList().subscribe(cats => {
-  this.categories = cats;
-});
-    this.productService.getCategoryList().subscribe(cats => {
-      this.categories = cats; // ← 8 objets complets
-    });
-
-    // Recherche
-    this.searchTerms.pipe(
-      debounceTime(300),
-      distinctUntilChanged(),
-      switchMap(term => {
-        const trimmed = term.trim();
-        return trimmed ? this.productService.searchProducts(trimmed) : of([]);
-      }),
-      catchError(() => of([]))
-    ).subscribe(results => {
-      this.searchResults = results.slice(0, 8);
-      this.showSearchDropdown = !!this.searchResults.length && !!this.searchQuery.trim();
-    });
+    this.searchTerms
+      .pipe(
+        debounceTime(300),
+        distinctUntilChanged(),
+        switchMap((term) => {
+          const trimmed = term.trim();
+          return trimmed ? this.productService.searchProducts(trimmed) : of([]);
+        }),
+        catchError(() => of([]))
+      )
+      .subscribe((results) => {
+        this.searchResults = results.slice(0, 8);
+        this.showSearchDropdown = !!this.searchResults.length && !!this.searchQuery.trim();
+      });
   }
 
   ngOnDestroy() {
     this.cartSubscription?.unsubscribe();
   }
 
-  // === RECHERCHE ===
   onSearchInput() {
     this.searchTerms.next(this.searchQuery);
   }
@@ -158,7 +146,6 @@ this.productService.getCategoryList().subscribe(cats => {
       this.showCartDropdown = false;
     }
 
-    // Fermer profil si clic hors conteneur
     if (!target.closest('.user-container')) {
       this.showUserDropdown = false;
     }
@@ -172,14 +159,12 @@ this.productService.getCategoryList().subscribe(cats => {
     this.clearSearch();
   }
 
-  // === PANIER ===
   toggleCartDropdown(event: Event) {
     event.stopPropagation();
     this.showCartDropdown = !this.showCartDropdown;
   }
 
   updateMiniCart() {
-    // this.cartItems = this.cartService.getItems(); // Décommentez si besoin
     this.cartTotal = this.cartService.getTotal();
   }
 
@@ -187,7 +172,6 @@ this.productService.getCategoryList().subscribe(cats => {
     this.cartService.removeFromCart(id);
   }
 
-  // === PROFIL ===
   toggleUserDropdown(event: Event) {
     event.stopPropagation();
     this.showUserDropdown = !this.showUserDropdown;
@@ -200,7 +184,6 @@ this.productService.getCategoryList().subscribe(cats => {
     this.showUserDropdown = false;
   }
 
-  // === MENU MOBILE ===
   toggleMenu() {
     this.isMenuOpen = !this.isMenuOpen;
   }
@@ -217,13 +200,11 @@ this.productService.getCategoryList().subscribe(cats => {
     this.closeMenu();
   }
 
-formatCategory(category: Category): string {
-  return category.name;
-}
+  formatCategory(category: Category): string {
+    return category.name;
+  }
 
-// Ajoute une fonction pour le slug (plus propre)
-getCategorySlug(category: Category): string {
-  return category.slug || category.name.toLowerCase().replace(/\s+/g, '-');
-}
-
+  getCategorySlug(category: Category): string {
+    return category.slug || category.name.toLowerCase().replace(/\s+/g, '-');
+  }
 }

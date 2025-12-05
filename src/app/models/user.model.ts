@@ -1,4 +1,5 @@
-// src/app/models/user.model.ts
+// CE FICHIER DOIT ÊTRE LE SEUL À CONTENIR CES INTERFACES
+
 export interface User {
   id: number;
   email: string;
@@ -6,6 +7,11 @@ export interface User {
   firstName: string;
   lastName: string;
   address: string;
-  password?: string;   // AJOUTE ÇA
+  addresses?: string[];
+  password?: string;
   token?: string;
+}
+
+export interface UserPayload extends Omit<User, 'password'> {
+  token: string;
 }

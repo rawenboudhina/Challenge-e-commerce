@@ -1,177 +1,140 @@
-import { Injectable, OnDestroy } from '@angular/core';
-import { BehaviorSubject, Observable, of, forkJoin, Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+// src/app/services/cart.service.ts
+import { Injectable } from '@angular/core';
+import { BehaviorSubject } from 'rxjs';
 import { Product, CartItem } from '../models/product.model';
 import { AuthService } from './auth.service';
 import { HttpClient } from '@angular/common/http';
-import { switchMap, map } from 'rxjs/operators';
-
-interface CartResponse {
-  id: string;  
-  userId: string;  
-  items: { productId: number; quantity: number }[];
-}
 
 @Injectable({
   providedIn: 'root'
 })
-export class CartService implements OnDestroy {
-  private apiUrl = 'http://localhost:3000';
+export class CartService {
+  private apiUrl = 'http://localhost:5000/api/cart';
   private cartItems: CartItem[] = [];
   private cartSubject = new BehaviorSubject<CartItem[]>([]);
-  public cart$: Observable<CartItem[]> = this.cartSubject.asObservable();
-  private localCartKey = 'temp_cart';
-  private isLoadingCart = false;
-  private destroy$ = new Subject<void>();
+  public cart$ = this.cartSubject.asObservable();
 
   constructor(
     private authService: AuthService,
     private http: HttpClient
   ) {
-    console.log('CartService INSTANCIÉ !', this);
-    this.initCart();
+    this.authService.currentUser$.subscribe(user => {
+      if (user) {
+        this.loadCartFromServer();
+      } else {
+        this.loadLocalCart();
+      }
+    });
   }
 
-  private initCart(): void {
-    this.authService.currentUser$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(user => {
-        if (user) {
-          this.loadUserCart(user.id);  
-        } else {
-          this.loadLocalCart();
-        }
-      });
+  private loadCartFromServer(): void {
+    this.http.get<any>(this.apiUrl).subscribe({
+      next: (res) => {
+        this.cartItems = res.items.map((i: any) => ({
+          product: { id: i.productId } as Product,
+          quantity: i.quantity
+        }));
+        this.cartSubject.next([...this.cartItems]);
+      },
+      error: () => {
+        this.cartItems = [];
+        this.cartSubject.next([]);
+      }
+    });
   }
 
   private loadLocalCart(): void {
-    const saved = localStorage.getItem(this.localCartKey);
+    const saved = localStorage.getItem('temp_cart');
     this.cartItems = saved ? JSON.parse(saved) : [];
     this.cartSubject.next([...this.cartItems]);
   }
 
   private saveLocalCart(): void {
-    localStorage.setItem(this.localCartKey, JSON.stringify(this.cartItems));
+    localStorage.setItem('temp_cart', JSON.stringify(this.cartItems));
+  }
+
+  // UTILISE TOUJOURS LA RÉPONSE DU SERVEUR — JAMAIS loadCartFromServer()
+  private syncCartFromResponse(res: any): void {
+    this.cartItems = res.items.map((i: any) => ({
+      product: { id: i.productId } as Product,
+      quantity: i.quantity
+    }));
     this.cartSubject.next([...this.cartItems]);
   }
 
-  private fetchProductsForCart(cart: CartResponse): Observable<CartItem[]> {
-    if (cart.items.length === 0) return of([]);
-    const requests = cart.items.map(item =>
-      this.http.get<Product>(`${this.apiUrl}/products/${item.productId}`).pipe(
-        map(product => ({ product, quantity: item.quantity }))
-      )
-    );
-    return forkJoin(requests).pipe(
-      map(fetchedItems => {
-        this.cartItems = [];
-        fetchedItems.forEach(({ product, quantity }) => {
-          const existing = this.cartItems.find(i => i.product.id === product.id);
-          if (existing) {
-            existing.quantity += quantity;
+  addToCart(product: Product, quantity = 1): void {
+    const existingIndex = this.cartItems.findIndex(i => i.product.id === product.id);
+
+    if (this.authService.isAuthenticated()) {
+      this.http.post<any>(`${this.apiUrl}/add`, {
+        productId: product.id,
+        quantity: existingIndex >= 0
+          ? this.cartItems[existingIndex].quantity + quantity
+          : quantity
+      }).subscribe({
+        next: (res) => this.syncCartFromResponse(res),
+        error: () => {
+          if (existingIndex >= 0) {
+            this.cartItems[existingIndex].quantity += quantity;
           } else {
             this.cartItems.push({ product, quantity });
           }
-        });
-        return this.cartItems;
-      })
-    );
-  }
-
-  private loadUserCart(userId: string | number): void {  
-    if (this.isLoadingCart) return;
-    this.isLoadingCart = true;
-    const uid = String(userId);
-    this.http.get<CartResponse[]>(`${this.apiUrl}/carts?userId=${uid}`).pipe(
-      switchMap(carts => {
-        if (carts.length > 1) {
-          const extras = carts.slice(1);
-          const deleteRequests = extras.map(extra => this.http.delete(`${this.apiUrl}/carts/${extra.id}`));
-          forkJoin(deleteRequests).subscribe();  
+          this.cartSubject.next([...this.cartItems]);
         }
-        let cartToUse: CartResponse;
-        if (carts.length > 0) {
-          cartToUse = carts[0];
-        } else {
-          return this.http.post<CartResponse>(`${this.apiUrl}/carts`, { userId: uid, items: [] }).pipe(
-            switchMap(newCart => this.fetchProductsForCart(newCart))
-          );
-        }
-        return this.fetchProductsForCart(cartToUse);
-      })
-    ).subscribe({
-      next: (items) => {
-        this.cartItems = items;
-        this.mergeLocalCartOnLogin();  
-        this.cartSubject.next([...this.cartItems]);
-        this.isLoadingCart = false;
-      },
-      error: () => {
-        this.isLoadingCart = false;
+      });
+    } else {
+      if (existingIndex >= 0) {
+        this.cartItems[existingIndex].quantity += quantity;
+      } else {
+        this.cartItems.push({ product, quantity });
       }
-    });
-  }
-
-  private lastAddTime = new Map<number, number>(); 
-  addToCart(product: Product, quantity: number = 1): void {
-    const now = Date.now();
-    const lastTime = this.lastAddTime.get(product.id) || 0;
-    if (now - lastTime < 500) {
-      console.warn('Double ajout détecté, ignoré pour', product.title);
-      return;
-    }
-    this.lastAddTime.set(product.id, now);
-    if (this.isLoadingCart) return;
-    const existingItem = this.cartItems.find(item => item.product.id === product.id);
-    if (existingItem) {
-      existingItem.quantity += quantity;
-    } else {
-      this.cartItems.push({ product, quantity });
-    }
-    this.cartSubject.next([...this.cartItems]);
-    if (this.authService.isAuthenticated()) {
-      this.saveUserCart();
-    } else {
       this.saveLocalCart();
-    }
-  }
-
-  private saveUserCart(): void {
-    const user = this.authService.getCurrentUser();
-    if (!user) return;
-    this.http.get<CartResponse[]>(`${this.apiUrl}/carts?userId=${user.id}`).pipe(
-      switchMap(carts => {
-        const items = this.cartItems.map(item => ({
-          productId: item.product.id,
-          quantity: item.quantity
-        }));
-        if (carts.length > 0) {
-          return this.http.patch<CartResponse>(`${this.apiUrl}/carts/${carts[0].id}`, { items });
-        } else {
-          return this.http.post<CartResponse>(`${this.apiUrl}/carts`, {
-            userId: user.id,
-            items
-          });
-        }
-      })
-    ).subscribe(() => {
       this.cartSubject.next([...this.cartItems]);
-    });
+    }
   }
 
   removeFromCart(productId: number): void {
-    this.cartItems = this.cartItems.filter(item => item.product.id !== productId);
-    this.authService.isAuthenticated() ? this.saveUserCart() : this.saveLocalCart();
-  }
+  this.cartItems = this.cartItems.filter(i => i.product.id !== productId);
+  this.cartSubject.next([...this.cartItems]);
 
+  if (this.authService.isAuthenticated()) {
+    this.http.post<any>(`${this.apiUrl}/remove`, { productId }).subscribe({
+      next: (res) => this.syncCartFromResponse(res),
+      error: () => {
+        // En cas d'erreur, tu peux restaurer l'article ou laisser supprimé
+        this.loadCartFromServer(); // option plus sûre
+      }
+    });
+  } else {
+    this.saveLocalCart();
+  }
+}
+// Ajoute cette méthode dans CartService
+getCurrentQuantity(productId: number): number {
+  const item = this.cartItems.find(i => i.product.id === productId);
+  return item ? item.quantity : 0;
+}
   updateQuantity(productId: number, quantity: number): void {
-    const item = this.cartItems.find(item => item.product.id === productId);
+    const item = this.cartItems.find(i => i.product.id === productId);
     if (item) {
       item.quantity = quantity;
+
       if (quantity <= 0) {
         this.removeFromCart(productId);
+        return;
+      }
+
+      if (this.authService.isAuthenticated()) {
+        this.http.post<any>(`${this.apiUrl}/add`, {
+          productId,
+          quantity
+        }).subscribe({
+          next: (res) => this.syncCartFromResponse(res), // ← JAMAIS loadCartFromServer()
+          error: () => this.cartSubject.next([...this.cartItems])
+        });
       } else {
-        this.authService.isAuthenticated() ? this.saveUserCart() : this.saveLocalCart();
+        this.saveLocalCart();
+        this.cartSubject.next([...this.cartItems]);
       }
     }
   }
@@ -179,61 +142,20 @@ export class CartService implements OnDestroy {
   clearCart(): void {
     this.cartItems = [];
     if (this.authService.isAuthenticated()) {
-      const user = this.authService.getCurrentUser();
-      if (user) {
-        this.http.get<CartResponse[]>(`${this.apiUrl}/carts?userId=${user.id}`).subscribe(carts => {
-          if (carts.length > 0) {
-            this.http.patch(`${this.apiUrl}/carts/${carts[0].id}`, { items: [] }).subscribe();
-          }
-        });
-      }
+      this.http.post<any>(`${this.apiUrl}/add`, { items: [] }).subscribe({
+        next: () => this.cartSubject.next([])
+      });
     } else {
-      localStorage.removeItem(this.localCartKey);
+      localStorage.removeItem('temp_cart');
+      this.cartSubject.next([]);
     }
-    this.cartSubject.next([...this.cartItems]);
   }
 
-  mergeLocalCartOnLogin(): void {
-    const localCartJson = localStorage.getItem(this.localCartKey);
-    if (!localCartJson || !this.authService.isAuthenticated()) return;
-    let localCart: CartItem[];
-    try {
-      localCart = JSON.parse(localCartJson);
-    } catch (e) {
-      localStorage.removeItem(this.localCartKey);
-      return;
-    }
-    if (localCart.length === 0) {
-      localStorage.removeItem(this.localCartKey);
-      return;
-    }
-    let hasChanges = false;
-    localCart.forEach(localItem => {
-      const existingItem = this.cartItems.find(item => item.product.id === localItem.product.id);
-      if (existingItem) {
-        existingItem.quantity += localItem.quantity;
-        hasChanges = true;
-      } else {
-        this.cartItems.push({ ...localItem });
-        hasChanges = true;
-      }
-    });
-    if (hasChanges) {
-      this.saveUserCart();
-      this.cartSubject.next([...this.cartItems]);
-    }
-    localStorage.removeItem(this.localCartKey);
+  getItemCount(): number {
+    return this.cartItems.reduce((s, i) => s + i.quantity, 0);
   }
 
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
-  }
-
-  public getItemCount(): number {
-    return this.cartItems.reduce((count, item) => count + item.quantity, 0);
-  }
-  public getTotal(): number {
-    return this.cartItems.reduce((total, item) => total + (item.product.price * item.quantity), 0);
+  getTotal(): number {
+    return this.cartItems.reduce((s, i) => s + (i.product.price * i.quantity), 0);
   }
 }

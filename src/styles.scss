@@ -1,8 +1,4 @@
-// ============================================
-// TECHZONE - DESIGN GLOBAL (UNIQUE FICHIER)
-// ============================================
 
-// —————————————— VARIABLES SCSS ——————————————
 $color-primary: #3b82f6;
 $color-primary-dark: #2563eb;
 $color-primary-darker: #1e40af;
@@ -11,7 +7,6 @@ $color-bg-medium: #1e293b;
 $color-text-light: #94a3b8;
 $color-white: #ffffff;
 
-// —————————————— MIXINS ——————————————
 @mixin smooth-transition {
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -156,7 +151,6 @@ body {
   }
 }
 
-// —————————————— PRODUCT CARD ——————————————
 .product-card {
   display: flex;
   flex-direction: column;

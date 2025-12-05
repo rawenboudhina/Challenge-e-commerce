@@ -1,4 +1,3 @@
-// src/app/pages/product-detail/product-detail.component.ts  // Assurez-vous du chemin correct
 import { Component, OnInit, OnDestroy, inject, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ProductService } from '../../services/product.service';
@@ -65,9 +64,7 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
   private wishlistSubscription: any;
   hoverRating = 0;
 
-  // === LIFECYCLE ===
   ngOnInit(): void {
-    // LE FIX ULTIME 2025 : SUBSCRIBE AUX PARAMÈTRES (JAMAIS snapshot avec OnPush)
     this.route.paramMap.subscribe(params => {
       const id = params.get('id');
       if (id) {
@@ -80,47 +77,42 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
     // Wishlist (inchangé)
     this.wishlistSubscription = this.wishlistService.wishlist$.subscribe(ids => {
       if (this.product) {
-        this.isInWishlist = ids.includes(this.product.id);
-        this.cdr.markForCheck();
-      }
+        this.isInWishlist = ids.includes(this.product.id.toString());     
+      this.cdr.markForCheck();}
     });
 
-    // Supprime le setTimeout inutile
-    // setTimeout(() => this.updateWishlistStatus(), 0); ← SUPPRIME ÇA
+    
   }
 
   ngOnDestroy(): void {
     this.wishlistSubscription?.unsubscribe();
   }
-
-  // === WISHLIST ===
-  private updateWishlistStatus(): void {
-    if (!this.product) return;
-    const wishlistIds = this.wishlistService.getAllProductIds();
-    this.isInWishlist = wishlistIds.includes(this.product.id);
-    this.cdr.markForCheck();
+  get isLoggedIn(): boolean {
+    return this.authService.isAuthenticated();
   }
 
-  toggleWishlist(): void {
-    if (!this.product) return;
-    if (!this.wishlistService.currentUserId) {
+ toggleWishlist(): void {
+  if (!this.product) return;
+
+  // CORRIGÉ : utilise la nouvelle méthode propre
+if (!this.isLoggedIn) {
       this.router.navigate(['/login'], { queryParams: { returnUrl: this.router.url } });
-      return;
-    }
-    const wasInWishlist = this.isInWishlist;  // Capture l'état avant toggle pour le message
-    this.wishlistService.toggle(this.product);
-
-    // Affiche une alerte attractive avec SweetAlert basée sur l'action
-    const action = wasInWishlist ? 'retiré des' : 'ajouté aux';
-    Swal.fire({
-      title: `${this.product.title} ${action} favoris !`,
-      icon: 'success',
-      timer: 2000,  // Ferme automatiquement après 2 secondes
-      showConfirmButton: false,
-      position: 'top-end',  // Position en haut à droite pour une notification discrète
-      toast: true  // Mode toast pour une notification non bloquante
-    });
+    return;
   }
+
+  const wasInWishlist = this.isInWishlist;
+  this.wishlistService.toggle(this.product.id); // ← passe l'ID, pas l'objet !
+
+  const action = wasInWishlist ? 'retiré des' : 'ajouté aux';
+  Swal.fire({
+    title: `${this.product.title} ${action} favoris !`,
+    icon: 'success',
+    timer: 2000,
+    showConfirmButton: false,
+    position: 'top-end',
+    toast: true
+  });
+}
 
   private triggerConfetti(): void {
     for (let i = 0; i < 25; i++) {
@@ -146,11 +138,10 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
     }
   }
 
-  // === CHARGEMENT PRODUIT ===
   private loadProduct(id: number): void {
     this.loading = true;
-    this.product = null; // Reset pour forcer OnPush
-    this.cdr.detectChanges(); // Forcer affichage du skeleton
+    this.product = null; 
+    this.cdr.detectChanges(); 
 
     this.productService.getProductById(id).subscribe({
       next: (product: Product) => {
@@ -188,19 +179,16 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
         this.loadSimilarProducts();
         this.loading = false;
 
-        // LE SECRET TUNISIEN 2025 :
-        this.cdr.detectChanges(); // PAS markForCheck() → detectChanges() !!!
-        this.updateWishlistStatus();
+        this.cdr.detectChanges(); 
       },
       error: (error) => {
         console.error('Erreur chargement produit :', error);
         this.loading = false;
-        this.cdr.detectChanges(); // Même en erreur
+        this.cdr.detectChanges(); 
       }
     });
   }
 
-  // === QUANTITÉ ===
   decreaseQuantity(): void {
     this.quantity = Math.max(1, this.quantity - 1);
   }
@@ -221,11 +209,9 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
     return this.product?.stock ?? 0;
   }
 
-  // === SIMILAIRES ===
   private loadSimilarProducts(): void {
     if (!this.product?.category) return;
-    this.productService.searchProducts('', this.product.category).subscribe({
-      next: (products: Product[]) => {
+this.productService.getProductsByCategory(this.product!.category).subscribe({      next: (products: Product[]) => {
         this.similarProducts = products
           .filter(p => p.id !== this.product?.id)
           .slice(0, 4);
@@ -234,7 +220,6 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
     });
   }
 
-  // === PRIX ===
   get originalPrice(): number {
     if (this.product?.discountPercentage && this.product.discountPercentage > 0) {
       return Math.round(this.product.price / (1 - this.product.discountPercentage / 100));
@@ -246,7 +231,6 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
     return this.originalPrice - (this.product?.price || 0);
   }
 
-  // === IMAGES ===
   selectImage(index: number): void {
     this.selectedImage = index;
   }
@@ -255,7 +239,6 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
     (event.target as HTMLImageElement).src = '/assets/fallback-image.jpg';
   }
 
-  // === PANIER ===
   addToCart(): void {
     if (this.product && this.quantity > 0) {
       this.cartService.addToCart(this.product, this.quantity);
@@ -263,7 +246,6 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
     }
   }
 
-  // === STOCK ===
   get inStock(): boolean {
     return this.getProductStock() > 0;
   }
@@ -273,7 +255,6 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
     return stock > 0 ? `En stock (${stock} disponibles)` : 'Rupture de stock';
   }
 
-  // === ÉTOILES ===
   get ratingStars(): number[] {
     const rating = this.product?.rating?.rate || 0;
     return Array(5).fill(0).map((_, i) =>
@@ -456,7 +437,6 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
     this.showToast('Vous serez notifié dès le retour en stock !', 'success');
   }
 
-  // === AJOUT AU PANIER DEPUIS SIMILAIRES (VERSION PRO TUNISIE 2025) ===
   onAddToCartFromSimilar(product: Product, event?: MouseEvent): void {
     if (event) {
       event.stopPropagation();
@@ -465,7 +445,6 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
     this.cartService.addToCart(product, 1);
     this.showToast(`1 × ${product.title} ajouté au panier !`, 'success');
     
-    // EFFETS DE OUF
     this.triggerConfetti();
     this.playAddToCartSound();
     this.vibratePhone();

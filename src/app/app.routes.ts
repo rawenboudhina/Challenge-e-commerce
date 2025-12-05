@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 import { HomeComponent } from './pages/home/home';
-import { Products } from './pages/products/products';  // Assurez-vous que c'est ProductsComponent si renommé
+import { Products } from './pages/products/products'; 
 import { CartComponent } from './pages/cart/cart';
 import { LoginComponent } from './pages/login/login';
 import { RegisterComponent } from './pages/register/register';
@@ -18,7 +18,7 @@ export const routes: Routes = [
   },
   {
     path: 'profile',
-    loadComponent: () => import('./pages/profile/profile').then(m => m.ProfileComponent)  // Changé : pages → features ; sans (m as any)
+    loadComponent: () => import('./pages/profile/profile').then(m => m.ProfileComponent)  
   },
   {
     path: 'order-confirmation/:id',

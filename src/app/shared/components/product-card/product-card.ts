@@ -1,4 +1,3 @@
-// src/app/components/product-card/product-card.component.ts
 import {
   Component,
   Input,
@@ -8,44 +7,48 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   OnInit,
-  OnDestroy
+  OnDestroy,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { Product } from '../../../models/product.model';
 import { WishlistService } from '../../../services/wishlist.service';
 import { CartService } from '../../../services/cart.service';
-// import { AuthService } from '../../../services/auth.service';  
-import Swal from 'sweetalert2';  // Import pour SweetAlert
-
+import Swal from 'sweetalert2';
+import { AuthService } from '../../../services/auth.service'; // ← AJOUTE CET IMPORT !
 @Component({
   selector: 'app-product-card',
   standalone: true,
   imports: [CommonModule, RouterModule],
   templateUrl: './product-card.html',
   styleUrls: ['./product-card.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProductCardComponent implements OnInit, OnDestroy {
   @Input() product!: Product;
   @Output() addToCart = new EventEmitter<Product>();
   @Output() quickBuy = new EventEmitter<Product>();
+
   wishlistService = inject(WishlistService);
   private cartService = inject(CartService);
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
-  private subscriptionWishlist: any;
+  private authService = inject(AuthService); // ← AJOUTÉ
+  private subscription: any;
   isWishlisted = false;
-
-  ngOnInit(): void {
-    this.subscriptionWishlist = this.wishlistService.wishlist$.subscribe(ids => {
-      this.isWishlisted = ids.includes(this.product.id);
-      this.cdr.markForCheck();
-    });
+  get isLoggedIn(): boolean {
+    return this.authService.isAuthenticated();
   }
+ngOnInit(): void {
+  this.subscription = this.wishlistService.wishlist$.subscribe((ids) => {
+    // Convertit les deux en string pour comparer
+    this.isWishlisted = ids.includes(String(this.product.id));
+    this.cdr.markForCheck();
+  });
+}
 
   ngOnDestroy(): void {
-    this.subscriptionWishlist?.unsubscribe();
+    this.subscription?.unsubscribe();
   }
 
   // === PRIX ===
@@ -57,74 +60,78 @@ export class ProductCardComponent implements OnInit, OnDestroy {
   }
 
   // === ÉTOILES ===
-  getStars(): { index: number; isFilled: boolean; isHalf: boolean; isEmpty: boolean; value: number }[] {
+  getStars(): any[] {
     const rating = this.product.rating?.rate || 0;
     const stars = [];
     for (let i = 1; i <= 5; i++) {
-      const value = i;
-      const isFilled = i <= Math.floor(rating);
-      const isHalf = i === Math.ceil(rating) && rating % 1 >= 0.5;
-      const isEmpty = i > Math.ceil(rating);
-      stars.push({ index: i - 1, isFilled, isHalf, isEmpty, value });
+      stars.push({
+        isFilled: i <= Math.floor(rating),
+        isHalf: i === Math.ceil(rating) && !Number.isInteger(rating),
+        isEmpty: i > Math.ceil(rating),
+      });
     }
     return stars;
   }
 
   // === ACTIONS ===
   onAddToCart(): void {
-    if (!this.product.stock || this.product.stock <= 0) return;
-    this.cartService.addToCart(this.product);
-    this.addToCart.emit(this.product);
-    // Affiche une alerte attractive de succès avec SweetAlert
-    Swal.fire({
-      title: 'Ajouté au panier !',
-      text: `${this.product.title} a été ajouté à votre panier.`,
-      icon: 'success',
-      timer: 2000,  // Ferme automatiquement après 2 secondes
-      showConfirmButton: false,
-      position: 'top-end',  // Position en haut à droite pour une notification discrète
-      toast: true  // Mode toast pour une notification non bloquante
-    });
+  if (!this.product.stock || this.product.stock <= 0) return;
+
+  // NE FAIS PLUS ÇA : this.cartService.addToCart(this.product);
+  this.addToCart.emit(this.product); // SEULEMENT L'ÉVÉNEMENT
+
+  Swal.fire({
+    title: 'Ajouté au panier !',
+    text: `${this.product.title} a été ajouté à votre panier.`,
+    icon: 'success',
+    timer: 2000,
+    toast: true,
+    position: 'top-end',
+    showConfirmButton: false
+  });
+}
+
+onToggleWishlist($event: Event): void {
+  $event.stopPropagation();
+
+  if (!this.isLoggedIn) {
+    this.router.navigate(['/login'], { queryParams: { returnUrl: this.router.url } });
+    return;
   }
 
-  onToggleWishlist($event: Event): void {
-    $event.stopPropagation();
-    // CORRIGÉ : Utilise currentUserId (public getter)
-    if (!this.wishlistService.currentUserId) {
-      this.router.navigate(['/login'], { queryParams: { returnUrl: this.router.url } });
-      return;
-    }
-    const wasWishlisted = this.isWishlisted;  // Capture l'état avant toggle pour le message
-    this.wishlistService.toggle(this.product);
-    // Réactivité gérée via wishlist$
+  const wasWishlisted = this.isWishlisted;
 
-    // Affiche une alerte attractive avec SweetAlert basée sur l'action
-    const action = wasWishlisted ? 'retiré des' : 'ajouté aux';
-    Swal.fire({
-      title: `${this.product.title} ${action} favoris !`,
-      icon: 'success',
-      timer: 2000,  // Ferme automatiquement après 2 secondes
-      showConfirmButton: false,
-      position: 'top-end',  // Position en haut à droite pour une notification discrète
-      toast: true  // Mode toast pour une notification non bloquante
-    });
-  }
+  // LA LIGNE MAGIQUE QUI RÉSOUT TOUT
+  const productIdToSend = this.product.id; // ENVOIE UNIQUEMENT L'ID NUMÉRIQUE (1, 2, 3...)
 
+  this.wishlistService.toggle(productIdToSend);
+
+  Swal.fire({
+    title: wasWishlisted ? 'Retiré des favoris' : 'Ajouté aux favoris !',
+    icon: wasWishlisted ? 'info' : 'success',
+    timer: 1500,
+    toast: true,
+    position: 'top-end',
+    showConfirmButton: false
+  });
+}
   onQuickBuy($event: Event): void {
     $event.stopPropagation();
     if (!this.product.stock || this.product.stock <= 0) return;
+
     this.cartService.addToCart(this.product);
     this.quickBuy.emit(this.product);
-    // Affiche une alerte attractive de succès avec SweetAlert avant redirection
+
     Swal.fire({
-      title: 'Ajouté au panier !',
-      text: `${this.product.title} a été ajouté à votre panier.`,
+      title: 'Prêt à payer !',
+      text: `${this.product.title} ajouté au panier`,
       icon: 'success',
-      timer: 2000,  // Ferme automatiquement après 2 secondes
-      showConfirmButton: false,
+      timer: 1500,
+      toast: true,
       position: 'top-end',
-      toast: true
+      showConfirmButton: false,
     });
+
     this.router.navigate(['/cart']);
   }
 

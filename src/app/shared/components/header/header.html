@@ -2,7 +2,6 @@
   <nav class="navbar">
     <div class="container">
       <div class="nav-content">
-        <!-- Menu mobile -->
         <button
           class="mobile-menu-btn"
           (click)="toggleMenu()"
@@ -13,14 +12,12 @@
           <span class="menu-icon">{{ isMenuOpen ? '✕' : '☰' }}</span>
         </button>
 
-        <!-- Logo -->
         <div class="logo">
           <a routerLink="/" class="logo-link" (click)="closeMenu()">
             <span class="logo-icon">TechZone</span>
           </a>
         </div>
 
-        <!-- Recherche Mobile -->
         <div class="mobile-search" *ngIf="isMobile">
           <input
             #searchInput
@@ -37,7 +34,6 @@
 </svg></button>
         </div>
 
-        <!-- Recherche Desktop -->
         <div class="search-bar">
           <input
             #searchInput
@@ -53,7 +49,6 @@
   <path d="m21 21-4.35-4.35"></path>
 </svg></button>
         </div>
-        <!-- Dropdown Recherche -->
         <div class="search-dropdown" *ngIf="showSearchDropdown" [@fadeInOut]>
           <div class="search-results">
             @for (product of searchResults; track product.id) {
@@ -78,7 +73,6 @@
           </a>
         </div>
 
-        <!-- Navigation -->
         <div class="nav-links" [class.active]="isMenuOpen">
           <a
             routerLink="/"
@@ -90,12 +84,10 @@
           </a>
           <a routerLink="/products" routerLinkActive="active" (click)="closeMenu()">Produits</a>
 
-          <!-- Catégories Mobile -->
           @if (isMobile && categories.length > 0) {
           <div class="mobile-categories">
             <h3 class="categories-title">Catégories</h3>
             @for (category of categories; track category) {
-            <!-- Remplace TOUTES les balises <a> de catégories par ça -->
 <a
   [routerLink]="['/products']"
   [queryParams]="{ category: getCategorySlug(category) }"
@@ -110,7 +102,6 @@
           </div>
           }
 
-          <!-- Panier avec icône -->
           <div class="cart-container" (click)="toggleCartDropdown($event)">
             <a
               class="cart-link"
@@ -217,7 +208,6 @@
   </div>
           }
 
-          <!-- Profil avec icône -->
           <div class="user-container">
             <button
               class="profile-btn"
@@ -277,12 +267,10 @@
     </div>
   </nav>
 
-  <!-- Catégories Desktop -->
   <div class="categories-bar" *ngIf="!isMobile">
     <div class="container">
       <div class="categories-list">
         @for (category of categories; track category) {
-      <!-- Remplace TOUTES les balises <a> de catégories par ça -->
 <a
   [routerLink]="['/products']"
   [queryParams]="{ category: getCategorySlug(category) }"
