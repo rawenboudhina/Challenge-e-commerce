@@ -326,7 +326,7 @@ this.productService.getProductsByCategory(this.product!.category).subscribe({   
     const displayName = `${u?.firstName || ''} ${u?.lastName || ''}`.trim() || 'Client';
     this.newReview = {
       user: displayName,
-      rating: 5,
+      rating: 0, // étoiles vides au départ
       comment: '',
       title: '',                 
       date: new Date().toISOString().slice(0, 10)
@@ -349,12 +349,12 @@ this.productService.getProductsByCategory(this.product!.category).subscribe({   
     const comment = this.newReview.comment?.trim();
     const title = this.newReview.title?.trim();
     const rating = this.newReview.rating;
-    if (!title || !comment || !rating || rating === 0) {
-      alert('Veuillez remplir le titre, le commentaire et la note');
+    if (!comment || !rating || rating === 0) {
+      alert('Veuillez choisir une note et saisir un commentaire');
       return;
     }
     if (!this.product) return;
-    this.productService.submitReview(this.product.id, { rating, comment, title }).subscribe({
+    this.productService.submitReview(this.product.id, { rating, comment }).subscribe({
       next: (res) => {
         const updated = res?.product;
         if (updated?.reviews && Array.isArray(updated.reviews)) {

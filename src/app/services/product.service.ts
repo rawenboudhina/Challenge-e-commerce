@@ -50,6 +50,6 @@ getProductById(id: string | number): Observable<Product> {
   }
 
   submitReview(productId: number, payload: { rating: number; comment: string; title?: string }): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/${productId}/reviews`, payload);
+    return this.http.post<any>(`${this.apiUrl}/reviews`, { productId, ...payload });
   }
 }
