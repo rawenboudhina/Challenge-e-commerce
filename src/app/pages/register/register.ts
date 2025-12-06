@@ -68,7 +68,7 @@ onSubmit() {
     },
     error: (err) => {
       this.loading = false;
-      this.errorMessage = err.message;
+      this.errorMessage = (typeof err === 'string') ? err : (err?.message || 'Erreur inscription');
     }
   });
 }

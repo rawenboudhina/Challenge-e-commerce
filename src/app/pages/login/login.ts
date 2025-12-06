@@ -44,7 +44,7 @@ export class LoginComponent {
     },
     error: (err: any) => {
       this.loading = false;
-      this.errorMessage = err.message || 'Identifiants incorrects';
+      this.errorMessage = (typeof err === 'string') ? err : (err?.message || 'Identifiants incorrects');
     }
   });
 }

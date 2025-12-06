@@ -52,7 +52,7 @@
             <strong>Commande #{{ order.id }}</strong>
             <span class="status" [ngClass]="order.status">{{ order.status }}</span>
           </div>
-          <div class="order-date">{{ order.date }}</div>
+          <div class="order-date">{{ order.date | date:'dd/MM/yyyy HH:mm' }}</div>
           <div class="order-total"><strong>Total: {{ order.total | number:'1.3-3' }} DT</strong></div>
         </div>
       </div>

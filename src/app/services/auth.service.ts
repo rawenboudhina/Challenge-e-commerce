@@ -4,6 +4,7 @@ import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, throwError } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 import { User, UserPayload } from '../models/user.model'; // ← ICI
+import { CartService } from './cart.service';
 @Injectable({
   providedIn: 'root'
 })
@@ -18,6 +19,9 @@ export class AuthService {
     private injector: Injector
   ) {
     this.loadUserFromStorage();
+    if (!this.currentUserSubject.value) {
+      this.bootstrapFromCookie();
+    }
   }
 
   private loadUserFromStorage(): void {
@@ -33,38 +37,34 @@ export class AuthService {
     }
   }
 // Dans auth.service.ts
-getUserId(): number | null {
-  const id = this.getCurrentUser()?.id;
-  return id ? Number(id) : null;
+getUserId(): string | null {
+  const id = this.getCurrentUser()?.id as any;
+  return id ? String(id) : null;
 }
   private mergeCartOnUserChange(): void {
-    setTimeout(() => {
-      try {
-        const cartService = this.injector.get<any>(null as any);
-        cartService?.mergeLocalCartOnLogin?.();
-      } catch {
-        setTimeout(() => this.mergeCartOnUserChange(), 100);
-      }
-    }, 0);
+    try {
+      const cartService = this.injector.get(CartService);
+      cartService.mergeLocalCartOnLogin();
+    } catch {}
   }
 
   register(data: any): Observable<UserPayload> {
     return this.http.post<UserPayload>(`${this.apiUrl}/register`, data).pipe(
       tap(user => this.setCurrentUser(user)),
-      catchError(err => throwError(() => err.error?.message || 'Erreur inscription'))
+      catchError(err => throwError(() => ({ message: err.error?.message || 'Erreur inscription' })))
     );
   }
 
   login(email: string, password: string): Observable<UserPayload> {
     return this.http.post<UserPayload>(`${this.apiUrl}/login`, { email, password }).pipe(
       tap(user => this.setCurrentUser(user)),
-      catchError(err => throwError(() => err.error?.message || 'Identifiants incorrects'))
+      catchError(err => throwError(() => ({ message: err.error?.message || 'Identifiants incorrects' })))
     );
   }
 
 private setCurrentUser(user: any): void {
   const normalized: UserPayload = {
-    id: user.id || user._id || user.user?._id,
+    id: user.id || user._id || user.user?.id || user.user?._id,
     email: user.email || user.user?.email,
     username: user.username || user.user?.username,
     firstName: user.firstName || user.user?.firstName || '',
@@ -81,12 +81,41 @@ private setCurrentUser(user: any): void {
 }
 
   logout(): void {
-    localStorage.removeItem('currentUser');
-    this.currentUserSubject.next(null);
+    this.http.post(`${this.apiUrl}/logout`, {}).subscribe({
+      next: () => {
+        localStorage.removeItem('currentUser');
+        localStorage.removeItem('temp_cart');
+        try {
+          const cartService = this.injector.get(CartService);
+          cartService.clearCart();
+        } catch {}
+        this.currentUserSubject.next(null);
+      },
+      error: () => {
+        localStorage.removeItem('currentUser');
+        localStorage.removeItem('temp_cart');
+        try {
+          const cartService = this.injector.get(CartService);
+          cartService.clearCart();
+        } catch {}
+        this.currentUserSubject.next(null);
+      }
+    });
+  }
+
+  private bootstrapFromCookie(): void {
+    this.http.get<any>(`${this.apiUrl}/me`).subscribe({
+      next: (res) => {
+        if (res?.user) {
+          this.setCurrentUser(res.user);
+        }
+      },
+      error: () => {}
+    });
   }
 
   isAuthenticated(): boolean {
-    return !!this.currentUserSubject.value?.token;
+    return !!this.currentUserSubject.value?.id;
   }
 
   getCurrentUser(): UserPayload | null {

@@ -22,7 +22,7 @@ export class CartService {
   ) {
     this.authService.currentUser$.subscribe(user => {
       if (user) {
-        this.loadCartFromServer();
+        this.mergeLocalCartOnLogin();
       } else {
         this.loadLocalCart();
       }
@@ -169,5 +169,27 @@ getCurrentQuantity(productId: number): number {
 
   getTotal(): number {
     return this.cartItems.reduce((s, i) => s + (i.product.price * i.quantity), 0);
+  }
+
+  /** Fusionne le panier local dans le panier serveur à la connexion */
+  mergeLocalCartOnLogin(): void {
+    const saved = localStorage.getItem('temp_cart');
+    const local: CartItem[] = saved ? JSON.parse(saved) : [];
+
+    if (!local.length) {
+      this.loadCartFromServer();
+      return;
+    }
+
+    const items = local.map(ci => ({ productId: ci.product.id, quantity: ci.quantity }));
+    this.http.patch<any>(this.apiUrl, { items }).subscribe({
+      next: (res) => {
+        localStorage.removeItem('temp_cart');
+        this.syncCartFromResponse(res);
+      },
+      error: () => {
+        this.loadCartFromServer();
+      }
+    });
   }
 }
